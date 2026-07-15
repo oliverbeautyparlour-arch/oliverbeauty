@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 //import '../theme/app_theme.dart';
 //import '../widgets/common_widgets.dart';
 import 'common_widgets.dart';
@@ -15,12 +16,25 @@ class _ProfileScreenState extends State<ProfileScreen>
   late AnimationController _headerCtrl;
   late Animation<double> _headerFade;
   late Animation<Offset> _headerSlide;
+// SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  final _nameCtrl = TextEditingController(text: 'Sindhu S.');
-  final _emailCtrl = TextEditingController(text: 'sindhu@example.com');
-  final _phoneCtrl = TextEditingController(text: '+91 98765 43210');
+// String? name = prefs.getString("name");
+// String? email = prefs.getString("email");
+
+  final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   bool _editing = false;
 
+Future<void> loadUserData() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  setState(() {
+    _nameCtrl.text = prefs.getString("name") ?? "";
+    _emailCtrl.text = prefs.getString("email") ?? "";
+    _phoneCtrl.text = prefs.getString("phone") ?? "Add your Phone Number";
+  });
+}
   @override
   void initState() {
     super.initState();
@@ -151,7 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          _nameCtrl.text,
+                          _nameCtrl.text  ,
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
@@ -167,29 +181,29 @@ class _ProfileScreenState extends State<ProfileScreen>
                             color: Colors.white.withOpacity(0.8),
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        // Stats row
-                        Container(
-                          margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _StatItem(label: 'Bookings', value: '12'),
-                              _VertDivider(),
-                              _StatItem(label: 'Reviews', value: '5'),
-                              _VertDivider(),
-                              _StatItem(label: 'Points', value: '480'),
-                            ],
-                          ),
-                        ),
+                        // const SizedBox(height: 20),
+                        // // Stats row
+                        // Container(
+                        //   margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                        //   padding: const EdgeInsets.symmetric(vertical: 14),
+                        //   decoration: BoxDecoration(
+                        //     color: Colors.white.withOpacity(0.15),
+                        //     borderRadius: BorderRadius.circular(16),
+                        //     border: Border.all(
+                        //       color: Colors.white.withOpacity(0.2),
+                        //     ),
+                        //   ),
+                        //   child: Row(
+                        //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        //     children: [
+                        //       _StatItem(label: 'Bookings', value: '12'),
+                        //       _VertDivider(),
+                        //       _StatItem(label: 'Reviews', value: '5'),
+                        //       _VertDivider(),
+                        //       _StatItem(label: 'Points', value: '480'),
+                        //     ],
+                        //   ),
+                        // ),
                         const SizedBox(height: 20),
                       ],
                     ),

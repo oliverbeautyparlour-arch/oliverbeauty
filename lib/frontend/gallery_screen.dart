@@ -18,18 +18,18 @@ class _GalleryScreenState extends State<GalleryScreen>
   late AnimationController _ctrl;
 
   List img = [
-    "assets/img1.jpeg",
-    "assets/img2.jpeg",
-    "assets/img3.jpeg",
-    "assets/img4.jpeg",
-    "assets/img5.jpeg",
-    "assets/img6.jpeg",
-    "assets/img7.jpeg",
-    "assets/img8.jpeg",
-    "assets/img9.jpeg",
-    "assets/img10.jpeg",
-    "assets/img11.jpeg",
-    "assets/img12.jpeg",
+    "assets/img1.webp",
+    "assets/img2.webp",
+    "assets/img3.webp",
+    "assets/img4.webp",
+    "assets/img5.webp",
+    "assets/img6.webp",
+    "assets/img7.webp",
+    "assets/img8.webp",
+    "assets/img9.webp",
+    "assets/img10.webp",
+    "assets/img11.webp",
+    "assets/img12.webp",
   ];
 
   final categories = [

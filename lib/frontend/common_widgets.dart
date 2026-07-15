@@ -184,7 +184,7 @@ class ServiceCard extends StatelessWidget {
   final String duration;
   final String price;
   final bool isadmin;
-  final String emoji;
+  final String image;
   final VoidCallback? onBook;
   final bool ishomescreen;
   //final double bottomSpacing;
@@ -197,31 +197,15 @@ class ServiceCard extends StatelessWidget {
     required this.duration,
     required this.isadmin,
     required this.price,
-    required this.emoji,
+    required this.image,
     required this.size,
     this.onBook,
     //required this.bottomSpacing,
   });
 
-  // double media() {
-  //   if (ishomescreen) return 10;
-
-  //   if (size < 400) return 10;
-  //   if (size < 600) return 30;
-  //   if (size < 700) return 60;
-  //   if (size < 750) return 120;
-  //   if (size < 800) return 150;
-  //   if (size < 900) return 180;
-  //   if (size < 1000) return 90;
-  //   if (size < 1300) return 120;
-  //   if (size < 1500) return 150;
-  //   if (size < 2000) return 190;
-
-  //   return 220;
-  // }
   String btn() {
     String word = "";
-    if (isadmin) {
+    if (!isadmin) {
       word = "Book Now";
     } else {
       word = "Edit";
@@ -263,9 +247,19 @@ class ServiceCard extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 40)),
-            ),
+
+child: ClipRRect(
+  borderRadius: const BorderRadius.only(
+    topLeft: Radius.circular(18),
+    topRight: Radius.circular(18),
+  ),
+  child: Image.asset(
+    'assets/${image}',
+    width: double.infinity,
+    height: 170,
+    fit: BoxFit.cover,
+  ),
+),
           ),
           Expanded(
             child: Padding(

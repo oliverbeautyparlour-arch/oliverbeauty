@@ -5,7 +5,7 @@ class ServiceModel {
   final int durationMins;
   final double price;
   final String description;
-  final String emoji;
+  final String image;
 
   ServiceModel({
     required this.serviceId,
@@ -14,7 +14,7 @@ class ServiceModel {
     required this.durationMins,
     required this.price,
     required this.description,
-    required this.emoji,
+    required this.image,
   });
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
@@ -24,7 +24,7 @@ class ServiceModel {
       price: json['price'] ?? 0,
       durationMins: json['durationMins'] ?? 0,
       description: json['description'] ?? '',
-      emoji: json['emoji'] ?? '',
+      image: json['image'] ?? '',
     );
   }
 }

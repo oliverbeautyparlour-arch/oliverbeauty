@@ -1,9 +1,60 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models.dart';
 import 'package:flutter/material.dart';
 
 class ApiService {
+Future<Map<String, dynamic>> signup({
+  required String name,
+  required String email,
+  required String password,
+  //required String number,
+}) async {
+  final response = await http.post(
+    Uri.parse("http://localhost:3000/signup"),
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      "name": name,
+      "email": email,
+      "password": password,
+     // "number": int.parse(number),
+    }),
+  );
+
+  return jsonDecode(response.body);
+}
+Future<Map<String, dynamic>> login({
+  required String name,
+  required String password,
+}) async {
+  final response = await http.post(
+    Uri.parse("http://localhost:3000/login"),
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      "name": name,
+      "password": password,
+    }),
+  );
+
+  return jsonDecode(response.body);
+}
+  Future<Map<String, dynamic>> createOrder({
+  required double amount,
+}) async {
+  final response = await http.post(
+    Uri.parse("http://localhost:3000/createOrder"),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode({
+      "amount": amount,
+    }),
+  );
+
+  return jsonDecode(response.body);
+}
+
   Future<List<ServiceModel>> getServices() async {
     final response = await http.get(
       Uri.parse('http://localhost:3000/getService'),
@@ -14,72 +65,63 @@ class ApiService {
 
       List services = data['data'];
 
-      return services
-          .map((e) => ServiceModel.fromJson(e))
-          .toList();
+      return services.map((e) => ServiceModel.fromJson(e)).toList();
     } else {
       throw Exception('Failed to load services');
     }
   }
-Future<List<BookingModel>> getBookings() async {
-  final response = await http.get(
-    Uri.parse('http://localhost:3000/getBookings'),
-  );
 
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-
-    List bookings = data['data'];
-
-    return bookings
-        .map((e) => BookingModel.fromJson(e))
-        .toList();
-  } else {
-    throw Exception('Failed to load bookings');
-  }
- }
-Future<bool> addBooking(BookingModel booking) async {
-  try {
-    final response = await http.post(
-      Uri.parse("http://localhost:3000/addBookings"),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: jsonEncode(booking.toJson()),
+  Future<List<BookingModel>> getBookings() async {
+    final response = await http.get(
+      Uri.parse('http://localhost:3000/getBookings'),
     );
-  print("Status Code: ${response.statusCode}");
-    print("Response: ${response.body}");
-    print("Request: ${jsonEncode(booking.toJson())}");
-    if (response.statusCode == 201) {
-      return true;
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      List bookings = data['data'];
+
+      return bookings.map((e) => BookingModel.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to load bookings');
     }
+  }
 
-    return false;
-  } catch (e) {
-    print(e);
-    return false;
+  Future<bool> addBooking(BookingModel booking) async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://localhost:3000/booking"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(booking.toJson()),
+      );
+      print("Status Code: ${response.statusCode}");
+      print("Response: ${response.body}");
+      print("Request: ${jsonEncode(booking.toJson())}");
+      if (response.statusCode == 201) {
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
+  Future<List<ServiceModel>> getTopFive() async {
+    final response = await http.get(Uri.parse('http://localhost:3000/TopFive'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      List services = data['data'];
+
+      return services.map((e) => ServiceModel.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to load top services');
+    }
   }
 }
- Future<List<ServiceModel>> getTopFive() async {
-  final response = await http.get(
-    Uri.parse('http://localhost:3000/TopFive'),
-  );
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-
-    List services = data['data'];
-
-    return services
-        .map((e) => ServiceModel.fromJson(e))
-        .toList();
-  } else {
-    throw Exception('Failed to load top services');
-  }
-}
-
-}
-
 
 class BookingProvider extends ChangeNotifier {
   List<BookingModel> _bookings = [];
@@ -110,6 +152,51 @@ class TopServiceProvider extends ChangeNotifier {
 
   Future<void> fetchTopServices() async {
     _topServices = await ApiService().getTopFive();
+    notifyListeners();
+  }
+}
+
+
+class AuthProvider extends ChangeNotifier {
+  bool _isLoggedIn = false;
+
+  bool get isLoggedIn => _isLoggedIn;
+
+  String? userId;
+  String? name;
+  String? email;
+
+  Future<void> loadUser() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    userId = prefs.getString("userId");
+    name = prefs.getString("name");
+    email = prefs.getString("email");
+
+    _isLoggedIn = userId != null;
+
+    notifyListeners();
+  }
+
+  void login({
+    required String id,
+    required String userName,
+    required String userEmail,
+  }) {
+    _isLoggedIn = true;
+    userId = id;
+    name = userName;
+    email = userEmail;
+
+    notifyListeners();
+  }
+
+  void logout() {
+    _isLoggedIn = false;
+    userId = null;
+    name = null;
+    email = null;
+
     notifyListeners();
   }
 }

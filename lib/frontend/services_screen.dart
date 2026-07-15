@@ -204,9 +204,9 @@ class _ServicesScreenState extends State<ServicesScreen>
                     name: s.serviceName,
                     duration: '${s.durationMins} mins',
                     price: '₹${s.price.toInt()}',
-                    emoji: s.emoji,
+                    image: s.image,
                     ishomescreen: false,
-                    isadmin: false,
+                    isadmin: widget.isadmin,
                     size: MediaQuery.of(context).size.width,
                     onBook: () {
                       if (widget.isadmin) {
@@ -215,7 +215,7 @@ class _ServicesScreenState extends State<ServicesScreen>
                         Navigator.push(
                           context,
 
-                          _slideRoute(BookingScreen(islogin: false)),
+                          _slideRoute(BookingScreen()),
                         );
                       }
                     },

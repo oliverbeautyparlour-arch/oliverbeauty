@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:webui/frontend/booking_screen.dart';
 import 'package:webui/frontend/gallery_screen.dart';
 import 'package:carousel_slider/carousel_slider.dart  ';
+import 'package:webui/frontend/login_screen.dart';
 import 'profile_screen.dart';
 import 'bookings_screen.dart';
 import 'app_theme.dart';
@@ -11,7 +12,7 @@ import 'services_screen.dart';
 import 'api.dart';
 import 'package:provider/provider.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatefulWidget { 
   const HomeScreen({super.key});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -64,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
       const ServicesScreen(isadmin: false,),
       const GalleryScreen(),
-      const BookingScreen(islogin: false),
+      const BookingScreen(),
       const BookingsScreen(),
       const ProfileScreen(),
     ];
@@ -96,37 +97,91 @@ class _HomeContent extends StatelessWidget {
       slivers: [
         // ── Top bar ──────────────────────────────────────────────────────────
         SliverAppBar(
-          pinned: true,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          title: Row(
-            children: [
-              Container(
-                width: 54,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.shade300, width: 1),
-                ),
-                child: ClipOval(
-                  child: Image.asset('assets/Logoround.jpg', fit: BoxFit.cover),
-                ),
-              ),
+  pinned: true,
+  backgroundColor: Colors.white,
+  elevation: 0,
 
-              const SizedBox(width: 20),
-              const Text(
-                'Oliver',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.green,
-                  letterSpacing: 2.7,
-                  fontFamily: 'serif',
-                ),
-              ),
-            ],
+  title: Row(
+    children: [
+      Container(
+        width: 54,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey.shade300, width: 1),
+        ),
+        child: ClipOval(
+          child: Image.asset(
+            'assets/Logoround.webp',
+            fit: BoxFit.cover,
           ),
         ),
+      ),
+      const SizedBox(width: 20),
+      const Text(
+        'Oliver',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: Colors.green,
+          letterSpacing: 2.7,
+          fontFamily: 'serif',
+        ),
+      ),
+    ],
+  ),
+
+  actions: [
+  
+  Padding(
+    padding: const EdgeInsets.only(right: 16),
+    child: ElevatedButton.icon(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>  LoginScreen(islogin: true,),
+          ),
+        );
+      },
+     // icon: const Icon(Icons.person_outline, size: 18),
+      label: const Text("Login"),
+      style: ElevatedButton.styleFrom(
+        shadowColor: Colors.white.withOpacity(1),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25),
+        ),
+      ),
+    ),
+  ),
+   Padding(
+    padding: const EdgeInsets.only(right: 16),
+    child: ElevatedButton.icon(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>  LoginScreen(islogin: false, ),
+          ),
+        );
+      },
+     // icon: const Icon(Icons.person_outline, size: 18),
+      label: const Text("Sign up"),
+      style: ElevatedButton.styleFrom(
+        
+shadowColor: Colors.green.withOpacity(0.4),
+        backgroundColor:Colors.transparent,
+        foregroundColor: Colors.green,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25),
+        ),
+      ),
+    ),
+  ),
+],
+),
         SliverToBoxAdapter(
           child: Column(
             children: [
@@ -220,12 +275,12 @@ class _HeroSection extends StatelessWidget {
 
   final images = [
     //Image.asset("assets/nails2.avif"),
-    Image.asset("assets/bride5.jpg"),
+    Image.asset("assets/bride5.webp"),
     //Image.asset("assets/bride4.jpg"),Image.asset("assets/facial2.webp"),
-    Image.asset("assets/hair.jpg"),
-    Image.asset("assets/nails.jpg"),
+    Image.asset("assets/hair.webp"),
+    //Image.asset("assets/nails.webp"),
 
-    Image.asset("assets/bride2.jpeg"),
+    Image.asset("assets/bride2.webp"),
     Image.asset("assets/facial.webp"),
   ];
   int currentindex = 0;
@@ -236,6 +291,7 @@ class _HeroSection extends StatelessWidget {
         Container(
           margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
           height: 220,
+          width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             gradient: const LinearGradient(
@@ -337,7 +393,7 @@ class _HeroSection extends StatelessWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            _slideRoute(BookingScreen(islogin: false)),
+                            _slideRoute(BookingScreen()),
                           );
                         },
                         child: Container(
@@ -410,11 +466,11 @@ class _HeroSection extends StatelessWidget {
 // ─── Categories Row ───────────────────────────────────────────────────────────
 class _CategoriesRow extends StatelessWidget {
   final categories = const [
-    {'icon': '✂️', 'label': 'Hair', 'count': '12'},
-    {'icon': '✨', 'label': 'Skin', 'count': '10'},
-    {'icon': '💄', 'label': 'Makeup', 'count': '8'},
-    {'icon': '💅', 'label': 'Nails', 'count': '6'},
-    {'icon': '👰', 'label': 'Bridal', 'count': '5'},
+    { 'image': 'assets/hair2.webp', 'label': 'Hair', 'count': '12'},
+    {'image':'assets/skin health.webp', 'label': 'Skin', 'count': '10'},
+    {'image': 'assets/Bridal-makeup (1).webp', 'label': 'Makeup', 'count': '8'},
+   // {'image': 'assets/haircut.webp', 'label': 'Nails', 'count': '6'},
+    {'image': 'assets/bride3.webp', 'label': 'Bridal', 'count': '5'},
   ];
 
   @override
@@ -438,46 +494,59 @@ class _CategoriesRow extends StatelessWidget {
                   ),
                 );
               },
-              child: Container(
-                width: 250,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.divider),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x08000000),
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      categories[i]['icon']!,
-                      style: const TextStyle(fontSize: 28),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      categories[i]['label']!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textDark,
-                      ),
-                    ),
-                    Text(
-                      '${categories[i]['count']} Services',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: AppTheme.textLight,
-                      ),
-                    ),
-                  ],
-                ),
+              child: 
+
+Container(
+  width: 250,
+  //height: 290,
+  decoration: BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(18),
+    border: Border.all(color: AppTheme.divider),
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+
+      ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(18),
+          topRight: Radius.circular(18),
+        ),
+        child: Image.asset(
+          categories[i]['image']!,
+          width: double.infinity,
+          height: 70,
+          fit: BoxFit.cover,
+        ),
+      ),
+
+      Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              categories[i]['label']!,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
               ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "${categories[i]['count']} Services",
+               style: const TextStyle(
+                         fontSize: 10,
+                         color: AppTheme.textLight,
+                     ),
+            ),
+          ],
+        ),
+      )
+    ],
+  ),
+),
             ),
           );
         },
@@ -518,13 +587,13 @@ class _PopularServicesRow extends StatelessWidget {
               name: popular[i].serviceName,
               duration: '${popular[i].durationMins} mins',
               price: '₹${popular[i].price.toInt()}',
-              emoji: popular[i].emoji,
+              image: popular[i].image,
               ishomescreen: true,
               isadmin: false,
               size: MediaQuery.of(context).size.width,
               onBook: () => Navigator.push(
                 context,
-                _slideRoute(BookingScreen(islogin: false)),
+                _slideRoute(BookingScreen()),
               ),
             ),
           ),

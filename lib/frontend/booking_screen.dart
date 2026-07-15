@@ -8,7 +8,7 @@ import 'api.dart';
 import 'package:provider/provider.dart';
 
 class BookingScreen extends StatefulWidget {
-  const BookingScreen({super.key, required bool islogin});
+  const BookingScreen({super.key});
   @override
   State<BookingScreen> createState() => _BookingScreenState();
 }
@@ -142,7 +142,7 @@ class _BookingScreenState extends State<BookingScreen>
 
                                   // Navigator.push(
                                   //   context,
-                                  //   _diagonalRoute(LoginMark()),
+                                  //   _diagonalRoute(LoginMark())  ,
                                   // );
                                 },
                                 child: Container(
@@ -203,35 +203,43 @@ class _BookingScreenState extends State<BookingScreen>
           // ── Continue button ──────────────────────────────────────────────────
           _BottomBar(
             step: _step,
-            onContinue: () {
-              // if (_step == 0) {
-              //   setState(() {
-              //     animate = true;
-              //   });
-              // }
+            onContinue: () async {
+  if (_step == 2) {
+    if (_selectedService == null) return;
 
-              if (_step == 2) {
-                if (_selectedService != null) {
-                  Navigator.push(
-                    context,
-                    _slideRoute(
-                      CheckoutScreen(
-                        service: _selectedService!,
-                        staff: _selectedStaff,
-                        date:
-                            _selectedDate ??
-                            DateTime.now().add(const Duration(days: 1)),
-                        time:
-                            _selectedTime ??
-                            const TimeOfDay(hour: 11, minute: 0),
-                      ),
-                    ),
-                  );
-                }
-              } else {
-                _next();
-              }
-            },
+    final auth = context.read<AuthProvider>();
+
+    // User not logged in
+    if (!auth.isLoggedIn) {
+      final success = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => LoginScreen(islogin: true),
+        ),
+      );
+
+      // User cancelled login
+      if (success != true) return;
+    }
+
+    // User is logged in
+    Navigator.push(
+      context,
+      _slideRoute(
+        CheckoutScreen(
+          service: _selectedService!,
+          staff: _selectedStaff,
+          date: _selectedDate ??
+              DateTime.now().add(const Duration(days: 1)),
+          time: _selectedTime ??
+              const TimeOfDay(hour: 11, minute: 0),
+        ),
+      ),
+    );
+  } else {
+    _next();
+  }
+},
           ),
         ],
       ),
@@ -587,25 +595,35 @@ class _ServiceDetail extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-              gradient: LinearGradient(
-                colors: [
-                  AppTheme.primaryLight.withOpacity(0.5),
-                  AppTheme.accentLight,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+          // Container(
+          //   height: 120,
+          //   decoration: BoxDecoration(
+          //     borderRadius: const BorderRadius.vertical(
+          //       top: Radius.circular(20),
+          //     ),
+          //     gradient: LinearGradient(
+          //       colors: [
+          //         AppTheme.primaryLight.withOpacity(0.5),
+          //         AppTheme.accentLight,
+          //       ],
+          //       begin: Alignment.topLeft,
+          //       end: Alignment.bottomRight,
+          //     ),
+          //   ),
+          //   child:
+             ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(18),
+          topRight: Radius.circular(18),
+        ),
+              child: Image.asset(
+  'assets/${service.image}',
+  width: double.infinity,
+  height: 190,
+  fit: BoxFit.cover,
+)
             ),
-            child: Center(
-              child: Text(service.emoji, style: const TextStyle(fontSize: 48)),
-            ),
-          ),
+          //),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -1538,10 +1556,13 @@ class _CheckoutPreviewStep extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Center(
-                          child: Text(
-                            service!.emoji,
-                            style: const TextStyle(fontSize: 28),
-                          ),
+                          child: 
+                         Image.asset(
+  'assets/${service!.image}',
+  width: 70,
+  height: 70,
+  fit: BoxFit.cover,
+)
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -1635,17 +1656,17 @@ class _CheckoutPreviewStep extends StatelessWidget {
                   _PriceRow('Service Amount', '₹${service!.price.toInt()}'),
                   const SizedBox(height: 8),
                   _PriceRow('Discount', '- ₹50', color: Colors.green),
-                  const SizedBox(height: 8),
-                  _PriceRow(
-                    'Tax (5%)',
-                    '₹${(service!.price * 0.05).toStringAsFixed(2)}',
-                  ),
+                  // const SizedBox(height: 8),
+                  // _PriceRow(
+                  //   'Tax (5%)',
+                  //   '₹${(service!.price * 0.05).toStringAsFixed(2)}',
+                  // ),
                   const SizedBox(height: 12),
                   const GoldDivider(),
                   const SizedBox(height: 12),
                   _PriceRow(
                     'Total Amount',
-                    '₹${(service!.price - 50 + service!.price * 0.05).toStringAsFixed(2)}',
+                    '₹${(service!.price - 50 ).toStringAsFixed(2)}',
                     bold: true,
                   ),
                 ],

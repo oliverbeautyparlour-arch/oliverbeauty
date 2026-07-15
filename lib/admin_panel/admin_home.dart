@@ -58,8 +58,7 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
       ),
       const ServicesScreen(isadmin: true),
       const GalleryScreen(),
-      //const BookingScreen(islogin: false),
-      //const BookingsScreen(),
+  
       const ProfileScreen(),
     ];
     return Scaffold(

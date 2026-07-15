@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webui/frontend/home_screen.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+// import 'dart:convert';
+// import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'common_widgets.dart';
+import 'package:razorpay_web/razorpay_web.dart';
 import 'models.dart';
 import 'app_theme.dart';
+import 'api.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final ServiceModel service;
   final String staff;
   final DateTime date;
   final TimeOfDay time;
+
   const CheckoutScreen({
     super.key,
     required this.service,
@@ -25,6 +30,9 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen>
     with TickerProviderStateMixin {
+ 
+
+  late Razorpay _razorpay;
   int _payMethod = 0;
   bool _confirming = false;
   bool _confirmed = false;
@@ -34,6 +42,29 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   late AnimationController _successCtrl;
   late Animation<double> _successScale;
   late Animation<double> _successFade;
+
+
+BookingModel _createBooking() {
+  final auth = context.read<AuthProvider>();
+  return BookingModel(
+
+    
+    userId: auth.userId!,
+    serviceId: widget.service.serviceId,
+    serviceName: widget.service.serviceName,
+    bookedPrice: widget.service.price,
+    bookedDuration: widget.service.durationMins,
+    bookingDateTime: DateTime(
+      widget.date.year,
+      widget.date.month,
+      widget.date.day,
+      widget.time.hour,
+      widget.time.minute,
+    ),
+    paymentType: _payMethods[_payMethod]["label"]!,
+    status: "Confirmed",
+  );
+}
 
   final _payMethods = [
     {'icon': '📱', 'label': 'UPI', 'sub': 'Pay using any UPI app'},
@@ -49,6 +80,34 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   @override
   void initState() {
     super.initState();
+   
+try{
+    _razorpay = Razorpay();
+
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (response) async {
+      print(response.paymentId);
+
+      bool success = await ApiService().addBooking(_createBooking());
+
+      if (success) {
+        setState(() {
+          _confirmed = true;
+        });
+
+        _successCtrl.forward();
+      }
+    });
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (response) {
+      print(response.message);
+
+     if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(response.message ?? 'Payment failed')));
+      }
+    });}
+    catch(e,st){
+      debugPrint('Razorpay init failed: $e\n$st');
+    }
     _summaryCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -76,117 +135,86 @@ class _CheckoutScreenState extends State<CheckoutScreen>
 
   @override
   void dispose() {
+    _razorpay.clear();
     _summaryCtrl.dispose();
     _payCtrl.dispose();
     _successCtrl.dispose();
     super.dispose();
   }
+Future<void> openCheckout() async {
 
- void _confirmBooking() async {
+  final total = widget.service.price - 50;
+final auth = context.read<AuthProvider>();
+  final order = await ApiService().createOrder(
+    amount: total,
+  );
 
-  setState(() {
-    _confirming = true;
-  });
+  var options = {
 
-  bool success = await saveBooking();
+    "key":"rzp_test_TCnTh1rAxY23i3",
+
+    "amount":order["amount"],
+
+    "order_id":order["id"],
+
+    "name":"Oliver Beauty Parlour",
+
+    "description":widget.service.serviceName,
+
+    "prefill":{
+
+      "name":auth.name,
+
+      "email":auth.email,
+
+
+    },
+
+    "theme":{
+
+      "color":"#C57B57"
+
+    }
+
+  };
+
+  _razorpay.open(options);
+
+}
+
+  void _confirmBooking() async {
+    setState(() {
+      _confirming = true;
+    });
+
+    if (_payMethod == 3) {
+
+   bool success = await ApiService().addBooking(_createBooking());
+
+    if (success) {
+      setState(() {
+        _confirmed = true;
+      });
+
+      _successCtrl.forward();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Booking Failed")),
+      );
+    }
+
+  } else {
+
+    
+    await openCheckout();
+
+  }
 
   setState(() {
     _confirming = false;
   });
-
-  if(success){
-
-    setState(() {
-      _confirmed = true;
-    });
-
-    _successCtrl.forward();
-
   }
 
-  else{
-
-    ScaffoldMessenger.of(context).showSnackBar(
-
-      const SnackBar(
-
-        content: Text("Booking Failed"),
-
-      ),
-
-    );
-
-  }
-
-}
-Future<bool> saveBooking() async {
-
-  final bookingDateTime = DateTime(
-    widget.date.year,
-    widget.date.month,
-    widget.date.day,
-    widget.time.hour,
-    widget.time.minute,
-  );
-
-  final paymentMethod = _payMethods[_payMethod]["label"];
-
-  final body = {
-
-    "userId": "USER001",   // Replace later after login
-
-    "serviceId": widget.service.serviceId,
-
-    "serviceName": widget.service.serviceName,
-
-    "bookedPrice": widget.service.price,
-
-    "bookedDuration": widget.service.durationMins,
-
-    "bookingDateTime": bookingDateTime.toIso8601String(),
-
-    "paymentType": paymentMethod,
-
-    "status": "Confirmed"
-
-  };
-
-  try {
-
-    final response = await http.post(
-
-      Uri.parse("http://localhost:3000/addBookings"),
-
-      headers: {
-        "Content-Type":"application/json"
-      },
-
-      body: jsonEncode(body),
-
-    );
-     print("Status Code: ${response.statusCode}");
-    print("Response: ${response.body}");
-   // print("Request: ${jsonEncode(booking.toJson())}");
-
-    if(response.statusCode == 201){
-
-      return true;
-
-    }
-
-    return false;
-
-  }
-
-  catch(e){
-
-    print(e);
-
-    return false;
-
-  }
-
-}
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +227,7 @@ Future<bool> saveBooking() async {
   }
 
   Widget _checkoutBody(BuildContext context) {
-    final total = widget.service.price - 50 + widget.service.price * 0.05;
+    final total = widget.service.price - 50;
 
     return Column(
       children: [

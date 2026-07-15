@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:webui/admin_panel/admin_dashboard.dart';
-
+import 'package:provider/provider.dart';
+import 'package:webui/admin_panel/admin_home.dart';
+import 'package:webui/frontend/api.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webui/frontend/app_theme.dart';
-import 'package:webui/frontend/booking_screen.dart';
-import 'package:webui/frontend/models.dart';
 
 class LoginScreen extends StatefulWidget {
   bool islogin;
-   LoginScreen({super.key,
-  required this.islogin,
-  });
+  
+  LoginScreen({super.key, required this.islogin,});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-final TextEditingController emailcontroller =  TextEditingController();
+final TextEditingController emailcontroller = TextEditingController();
 final TextEditingController usernameController = TextEditingController();
 final TextEditingController passwordController = TextEditingController();
+
+Future<void> saveUserSession(Map<String, dynamic> user) async {
+  final prefs = await SharedPreferences.getInstance();
+
+  await prefs.setString("userId", user["_id"]);
+  await prefs.setString("name", user["name"]);
+  await prefs.setString("email", user["email"]);
+  await prefs.setBool("isLoggedIn", true);
+}
 
 class _LoginScreenState extends State<LoginScreen> {
   Widget containerbox({required Text child}) {
@@ -40,7 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  
   List<Widget> circleside() {
     List<Widget> circles = [];
     double width = MediaQuery.of(context).size.width;
@@ -104,8 +111,8 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               SizedBox(height: 20),
               Text(
-                widget.islogin?"Login in to Oliver":"Create Account",
-               // "Sign-in To Oliver",
+                widget.islogin ? "Login in to Oliver" : "Create Account",
+                // "Sign-in To Oliver",
                 style: TextStyle(
                   color: AppTheme.primaryDark,
                   fontSize: 21,
@@ -257,57 +264,56 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                                 SizedBox(height: 15),
-                                if(!widget.islogin)...[
-Text(
-                                  "Email Id",
-                                  style: TextStyle(
-                                    color: AppTheme.primaryLight,
-                                    fontSize: 14,
+                                if (!widget.islogin) ...[
+                                  Text(
+                                    "Email Id",
+                                    style: TextStyle(
+                                      color: AppTheme.primaryLight,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 10),
+                                  SizedBox(height: 10),
 
-                                Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppTheme.primaryDark.withOpacity(
-                                          0.2,
+                                  Container(
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppTheme.primaryDark
+                                              .withOpacity(0.2),
+                                          offset: Offset(2, 2),
+                                          blurRadius: 6,
                                         ),
-                                        offset: Offset(2, 2),
-                                        blurRadius: 6,
-                                      ),
-                                      BoxShadow(
-                                        color: Colors.white.withOpacity(0.2),
-                                        offset: Offset(-2, -2),
-                                        blurRadius: 6,
-                                      ),
-                                    ],
-                                  ),
-                                  child: TextField(
-                                    controller: emailcontroller,
-                                    cursorColor: AppTheme.bg,
-                                    style: TextStyle(color: Colors.white),
-                                    decoration: InputDecoration(
-                                      prefixIcon: Icon(
-                                        Icons.phone_android_outlined,
-                                        color: AppTheme.primaryLight,
-                                      ),
+                                        BoxShadow(
+                                          color: Colors.white.withOpacity(0.2),
+                                          offset: Offset(-2, -2),
+                                          blurRadius: 6,
+                                        ),
+                                      ],
+                                    ),
+                                    child: TextField(
+                                      controller: emailcontroller,
+                                      cursorColor: AppTheme.bg,
+                                      style: TextStyle(color: Colors.white),
+                                      decoration: InputDecoration(
+                                        prefixIcon: Icon(
+                                          Icons.phone_android_outlined,
+                                          color: AppTheme.primaryLight,
+                                        ),
 
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      contentPadding: EdgeInsets.symmetric(
-                                        vertical: 14,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-
                                 ],
-                                
 
                                 SizedBox(height: 15),
                                 Text(
@@ -361,8 +367,9 @@ Text(
                                 Row(
                                   children: [
                                     Text(
-                                      widget.islogin?"Don't have an account":
-                                      "Already have an account?",
+                                      widget.islogin
+                                          ? "Don't have an account"
+                                          : "Already have an account?",
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: AppTheme.bg,
@@ -372,12 +379,12 @@ Text(
                                     SizedBox(width: 15),
                                     ElevatedButton(
                                       onPressed: () {
-                                          setState(() {
-         widget.islogin = !widget.islogin;
-        });
+                                        setState(() {
+                                          widget.islogin = !widget.islogin;
+                                        });
                                       },
                                       child: Text(
-                                       widget.islogin? "Sign up": "Login",
+                                        widget.islogin ? "Sign up" : "Login",
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
@@ -395,34 +402,40 @@ Text(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppTheme.bgCard,
                                     ),
-                                    onPressed: () {
-                                      if (widget.islogin) {
+                                    onPressed: () async {final api = ApiService();
+
+  if (widget.islogin) {
 
     // LOGIN
 
-    if (usernameController.text == "admin" &&
-        passwordController.text == "12345") {
+    final result = await api.login(
+      name: usernameController.text.trim(),
+      password: passwordController.text.trim(),
+    );
 
-      Navigator.push(
-        context,
-        _slideRoute( AdminDashboard(
-               service: ServiceModel(
-              serviceId: "223",
-              serviceName: "created one",
-              category: "Hair",
-              durationMins: 56,
-              price: 5453,
-              description: "this is from login page",
-              emoji: "5",
-       ),)),
+    if (result["success"]) {
+
+await saveUserSession(result["user"]);
+      context.read<AuthProvider>().login(
+        userEmail:  result["user"]["email"],userName: result['user']['name'],id: result['user']['_id']
       );
+Navigator.pop(context, true);
+      if (result["role"] == "admin") {
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AdminHome(),
+          ),
+        );
+
+      }
 
     } else {
 
-      Navigator.push(
-        context,
-        _slideRoute(
-          BookingScreen(islogin: true),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result["message"]),
         ),
       );
 
@@ -430,24 +443,44 @@ Text(
 
   } else {
 
-    // SIGN UP
+    // SIGNUP
 
-    // Save user to database here
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Account Created Successfully"),
-      ),
+    final result = await api.signup(
+      name: usernameController.text.trim(),
+      email: emailcontroller.text.trim(),
+      password: passwordController.text.trim(),
+     // number: "9876543210", // replace later with phone field
     );
 
-    setState(() {
-      widget.islogin = true;
-    });
+    if (result["success"]) {
 
-  }
-                                    },
+     await saveUserSession(result["user"]);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Account Created Successfully"),
+        ),
+      );
+
+     Navigator.pop(context, true);
+
+    } else {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result["message"]),
+        ),
+      );
+
+    }
+
+  }                                      } ,
+ 
+                                
                                     child: Text(
-                                     widget.islogin?"Login in" :" Create Account",
+                                      widget.islogin
+                                          ? "Login"
+                                          : " Create Account",
                                       style: TextStyle(
                                         fontSize: 18,
                                         color: AppTheme.primary,
