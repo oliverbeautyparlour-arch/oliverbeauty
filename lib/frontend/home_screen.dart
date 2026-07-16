@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webui/frontend/booking_screen.dart';
 import 'package:webui/frontend/gallery_screen.dart';
-import 'package:carousel_slider/carousel_slider.dart  ';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:webui/frontend/login_screen.dart';
 import 'profile_screen.dart';
 import 'bookings_screen.dart';
