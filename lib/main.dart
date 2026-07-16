@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import './home_screen.dart';
-import './app_theme.dart';
+import '../frontend/home_screen.dart';
+import '../frontend/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import './api.dart';
+import '../frontend/api.dart';
 
 
 Future<void> main()  async{
