@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:webui/frontend/home_screen.dart';
-import 'frontend/app_theme.dart';
+import './home_screen.dart';
+import './app_theme.dart';
 import 'package:provider/provider.dart';
-import 'package:webui/frontend/api.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import './api.dart';
 
 
-void main() {
+Future<void> main()  async{
   WidgetsFlutterBinding.ensureInitialized();
+
+   await dotenv.load(fileName: ".env");
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
+      
     ),
   );
   runApp(
@@ -43,7 +47,12 @@ class _BeautyParlourAppState extends State<BeautyParlourApp> {
     Future.microtask(() {
       context.read<AuthProvider>().loadUser();
     });
+  
   }
+
+  final apiUrl = dotenv.env['API_URL'];
+
+final razorpayKey = dotenv.env['RAZORPAY_KEY'];
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

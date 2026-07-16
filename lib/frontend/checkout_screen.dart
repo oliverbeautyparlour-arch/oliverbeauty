@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:webui/frontend/home_screen.dart';
-// import 'dart:convert';
-// import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'common_widgets.dart';
 import 'package:razorpay_web/razorpay_web.dart';
@@ -151,7 +149,7 @@ final auth = context.read<AuthProvider>();
 
   var options = {
 
-    "key":"rzp_test_TCnTh1rAxY23i3",
+    "key":dotenv.env['RAZORPAY_KEY'],
 
     "amount":order["amount"],
 

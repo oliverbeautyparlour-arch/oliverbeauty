@@ -16,10 +16,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   late AnimationController _headerCtrl;
   late Animation<double> _headerFade;
   late Animation<Offset> _headerSlide;
-// SharedPreferences prefs = await SharedPreferences.getInstance();
 
-// String? name = prefs.getString("name");
-// String? email = prefs.getString("email");
 
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();

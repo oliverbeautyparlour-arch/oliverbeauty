@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models.dart';
@@ -12,7 +13,7 @@ Future<Map<String, dynamic>> signup({
   //required String number,
 }) async {
   final response = await http.post(
-    Uri.parse("http://localhost:3000/signup"),
+    Uri.parse("${dotenv.env['API_URL']}/signup"),
     headers: {"Content-Type": "application/json"},
     body: jsonEncode({
       "name": name,
@@ -29,7 +30,7 @@ Future<Map<String, dynamic>> login({
   required String password,
 }) async {
   final response = await http.post(
-    Uri.parse("http://localhost:3000/login"),
+    Uri.parse("${dotenv.env['API_URL']}/login"),
     headers: {"Content-Type": "application/json"},
     body: jsonEncode({
       "name": name,
@@ -43,7 +44,7 @@ Future<Map<String, dynamic>> login({
   required double amount,
 }) async {
   final response = await http.post(
-    Uri.parse("http://localhost:3000/createOrder"),
+    Uri.parse("${dotenv.env['API_URL']}/createOrder"),
     headers: {
       "Content-Type": "application/json",
     },
@@ -57,7 +58,7 @@ Future<Map<String, dynamic>> login({
 
   Future<List<ServiceModel>> getServices() async {
     final response = await http.get(
-      Uri.parse('http://localhost:3000/getService'),
+      Uri.parse('${dotenv.env['API_URL']}/getService'),
     );
 
     if (response.statusCode == 200) {
@@ -73,7 +74,7 @@ Future<Map<String, dynamic>> login({
 
   Future<List<BookingModel>> getBookings() async {
     final response = await http.get(
-      Uri.parse('http://localhost:3000/getBookings'),
+      Uri.parse('${dotenv.env['API_URL']}/getBookings'),
     );
 
     if (response.statusCode == 200) {
@@ -90,7 +91,7 @@ Future<Map<String, dynamic>> login({
   Future<bool> addBooking(BookingModel booking) async {
     try {
       final response = await http.post(
-        Uri.parse("http://localhost:3000/booking"),
+        Uri.parse("${dotenv.env['API_URL']}/booking"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(booking.toJson()),
       );
@@ -109,7 +110,7 @@ Future<Map<String, dynamic>> login({
   }
 
   Future<List<ServiceModel>> getTopFive() async {
-    final response = await http.get(Uri.parse('http://localhost:3000/TopFive'));
+    final response = await http.get(Uri.parse('${dotenv.env['API_URL']}/TopFive'));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);

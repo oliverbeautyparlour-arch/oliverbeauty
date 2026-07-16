@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 
@@ -10,9 +13,17 @@ app.use(express.json())
 
 const Razorpay = require("razorpay");
 
+const PORT = process.env.PORT;
+
+const mongoUri = process.env.MONGODB_URI;
+
+const razorpayKey = process.env.RAZORPAY_KEY_ID;
+
+const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
+
 const razorpay = new Razorpay({
-    key_id: "rzp_test_TCnTh1rAxY23i3",
-    key_secret: "Ona4g0rZwmkrzNUb3WOI1jtn"
+    key_id: razorpayKey,
+    key_secret: razorpaySecret
 });
 app.post("/createOrder", async (req, res) => {
   try {
@@ -392,8 +403,8 @@ app.get('/getService',async(req, res)=>{
 
 
 
-//const uri = "mongodb+srv://selvasindhuja:sindhu1012@userdb.4gjmguy.mongodb.net/?appName=UserDB";
-const uri = "mongodb+srv://oliverbeautyparlour_db_user:oliverbeauty12345@oliverbp.ljiijld.mongodb.net/?appName=OliverBP";
+
+const uri = mongoUri;
 
 
 const connectDB = async () => {
@@ -408,7 +419,7 @@ const connectDB = async () => {
   }
 };
 
-app.listen(3000, '0.0.0.0', () => {
-    console.log("Server running on port 3000");
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
     connectDB();
 });
