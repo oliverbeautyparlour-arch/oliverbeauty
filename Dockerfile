@@ -1,12 +1,11 @@
 # ---------- Stage 1 : Build Flutter Web ----------
-FROM ghcr.io/cirruslabs/flutter:stable AS build
+FROM ghcr.io/cirruslabs/flutter:3.35.2 AS build
 
 WORKDIR /app
 
 COPY . .
 
 RUN flutter pub get
-
 RUN flutter build web --release
 
 # ---------- Stage 2 : Serve with Nginx ----------
