@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:webui/config.dart';
 import 'package:webui/frontend/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'common_widgets.dart';
@@ -149,7 +149,7 @@ final auth = context.read<AuthProvider>();
 
   var options = {
 
-    "key":dotenv.env['RAZORPAY_KEY'],
+    "key":AppConfig.RAZORPAY_KEY,
 
     "amount":order["amount"],
 

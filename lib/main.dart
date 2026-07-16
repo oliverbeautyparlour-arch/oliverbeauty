@@ -3,14 +3,13 @@ import 'package:flutter/services.dart';
 import '../frontend/home_screen.dart';
 import '../frontend/app_theme.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../frontend/api.dart';
 
 
 Future<void> main()  async{
   WidgetsFlutterBinding.ensureInitialized();
 
-   await dotenv.load(fileName: ".env");
+  
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -50,9 +49,7 @@ class _BeautyParlourAppState extends State<BeautyParlourApp> {
   
   }
 
-  final apiUrl = dotenv.env['API_URL'];
-
-final razorpayKey = dotenv.env['RAZORPAY_KEY'];
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
