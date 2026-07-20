@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webui/frontend/login_screen.dart';
+import 'package:webui/frontend/shimmer.dart';
 import 'app_theme.dart';
 import 'models.dart';
 import 'common_widgets.dart';
@@ -17,7 +18,7 @@ class _BookingScreenState extends State<BookingScreen>
     with TickerProviderStateMixin {
   int _step = 0;
   ServiceModel? _selectedService;
-  String _selectedStaff = "nameofsis";
+  final String _selectedStaff = "Josephin";
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
@@ -459,7 +460,13 @@ class _SelectServiceStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final services = Provider.of<ServiceProvider>(context).services;
+  final provider = context.watch<ServiceProvider>();
+
+if (provider.services.isEmpty) {
+  return const ServicesShimmer(crossAxisCount:1, count: 1,);
+}
+
+final services = provider.services;
     return Row(
       children: [
         // List

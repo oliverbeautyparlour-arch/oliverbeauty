@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:webui/admin_panel/admin_dashboard.dart';
+import 'package:webui/frontend/shimmer.dart';
 import 'app_theme.dart';
 import 'models.dart';
 import 'common_widgets.dart';
 import 'booking_screen.dart';
 import 'api.dart';
 import 'package:provider/provider.dart';
+
+
 
 class ServicesScreen extends StatefulWidget {
   final String selectedCategory;
@@ -30,7 +33,6 @@ class _ServicesScreenState extends State<ServicesScreen>
     'Hair',
     'Skin',
     'Makeup',
-    'Nails',
     'Bridal',
   ];
 
@@ -95,10 +97,42 @@ class _ServicesScreenState extends State<ServicesScreen>
 
   @override
   Widget build(BuildContext context) {
-    final services = context.watch<ServiceProvider>().services;
-    if (services.isEmpty) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+   final provider = context.watch<ServiceProvider>();
+
+if (provider.services.isEmpty) {
+  return Scaffold(
+    backgroundColor: AppTheme.bg,
+    body: Column(
+      children: [
+
+        const SizedBox(height: 80),
+
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Our Services",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        Expanded(
+          child: ServicesShimmer(
+            crossAxisCount: media(),
+            count: 8,
+          ),
+        ),
+      ],
+    ),
+  );
+}
     return Scaffold(
       backgroundColor: AppTheme.bg,
       body: CustomScrollView(

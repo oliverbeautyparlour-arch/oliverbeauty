@@ -3,6 +3,8 @@ import 'package:webui/frontend/booking_screen.dart';
 import 'package:webui/frontend/gallery_screen.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:webui/frontend/login_screen.dart';
+import 'package:webui/frontend/offers_screen.dart';
+import 'package:webui/frontend/shimmer.dart';
 import 'profile_screen.dart';
 import 'bookings_screen.dart';
 import 'app_theme.dart';
@@ -12,7 +14,7 @@ import 'services_screen.dart';
 import 'api.dart';
 import 'package:provider/provider.dart';
 
-class HomeScreen extends StatefulWidget { 
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -40,12 +42,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     Future.microtask(() {
       context.read<ServiceProvider>().fetchServices();
     });
-     WidgetsBinding.instance.addPostFrameCallback((_) {
-    Provider.of<TopServiceProvider>(
-      context,
-      listen: false,
-    ).fetchTopServices();
-  });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TopServiceProvider>(
+        context,
+        listen: false,
+      ).fetchTopServices();
+    });
   }
 
   @override
@@ -53,6 +55,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _heroCtrl.dispose();
     super.dispose();
   }
+
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         heroSlide: _heroSlide,
         services: services,
       ),
-      const ServicesScreen(isadmin: false,),
+      const ServicesScreen(isadmin: false),
       const GalleryScreen(),
       const BookingScreen(),
       const BookingsScreen(),
@@ -97,91 +101,89 @@ class _HomeContent extends StatelessWidget {
       slivers: [
         // ── Top bar ──────────────────────────────────────────────────────────
         SliverAppBar(
-  pinned: true,
-  backgroundColor: Colors.white,
-  elevation: 0,
+          pinned: true,
+          backgroundColor: Colors.white,
+          elevation: 0,
 
-  title: Row(
-    children: [
-      Container(
-        width: 54,
-        height: 50,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey.shade300, width: 1),
-        ),
-        child: ClipOval(
-          child: Image.asset(
-            'assets/Logoround.webp',
-            fit: BoxFit.cover,
+          title: Row(
+            children: [
+              Container(
+                width: 54,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300, width: 1),
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/Logoround.webp',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
+              const Text(
+                'Oliver',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.green,
+                  letterSpacing: 2.7,
+                  fontFamily: 'serif',
+                ),
+              ),
+            ],
           ),
-        ),
-      ),
-      const SizedBox(width: 20),
-      const Text(
-        'Oliver',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          color: Colors.green,
-          letterSpacing: 2.7,
-          fontFamily: 'serif',
-        ),
-      ),
-    ],
-  ),
 
-  actions: [
-  
-  Padding(
-    padding: const EdgeInsets.only(right: 16),
-    child: ElevatedButton.icon(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>  LoginScreen(islogin: true,),
-          ),
-        );
-      },
-     // icon: const Icon(Icons.person_outline, size: 18),
-      label: const Text("Login"),
-      style: ElevatedButton.styleFrom(
-        shadowColor: Colors.white.withOpacity(1),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LoginScreen(islogin: true),
+                    ),
+                  );
+                },
+                // icon: const Icon(Icons.person_outline, size: 18),
+                label: const Text("Login"),
+                style: ElevatedButton.styleFrom(
+                  shadowColor: Colors.white.withOpacity(1),
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LoginScreen(islogin: false),
+                    ),
+                  );
+                },
+                // icon: const Icon(Icons.person_outline, size: 18),
+                label: const Text("Sign up"),
+                style: ElevatedButton.styleFrom(
+                  shadowColor: Colors.green.withOpacity(0.4),
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-    ),
-  ),
-   Padding(
-    padding: const EdgeInsets.only(right: 16),
-    child: ElevatedButton.icon(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>  LoginScreen(islogin: false, ),
-          ),
-        );
-      },
-     // icon: const Icon(Icons.person_outline, size: 18),
-      label: const Text("Sign up"),
-      style: ElevatedButton.styleFrom(
-        
-shadowColor: Colors.green.withOpacity(0.4),
-        backgroundColor:Colors.transparent,
-        foregroundColor: Colors.green,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
-        ),
-      ),
-    ),
-  ),
-],
-),
         SliverToBoxAdapter(
           child: Column(
             children: [
@@ -209,18 +211,23 @@ shadowColor: Colors.green.withOpacity(0.4),
                   child: SectionTitle(
                     title: 'Popular Services',
                     action: 'View All',
-                    onAction: () {},
+                    onAction: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ServicesScreen(isadmin: false),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               Consumer<TopServiceProvider>(
-  builder: (context, provider, child) {
-    return _PopularServicesRow(
-      services: provider.topServices,
-    );
-  },
-),
+                builder: (context, provider, child) {
+                  return _PopularServicesRow(services: provider.topServices);
+                },
+              ),
               const SizedBox(height: 32),
 
               // ── Promo banner ────────────────────────────────────────────
@@ -278,8 +285,8 @@ class _HeroSection extends StatelessWidget {
     Image.asset("assets/bride5.webp"),
     //Image.asset("assets/bride4.jpg"),Image.asset("assets/facial2.webp"),
     Image.asset("assets/hair.webp"),
-    //Image.asset("assets/nails.webp"),
 
+    //Image.asset("assets/nails.webp"),
     Image.asset("assets/bride2.webp"),
     Image.asset("assets/facial.webp"),
   ];
@@ -391,10 +398,7 @@ class _HeroSection extends StatelessWidget {
                     children: [
                       PressableScale(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            _slideRoute(BookingScreen()),
-                          );
+                          Navigator.push(context, _slideRoute(BookingScreen()));
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -420,7 +424,7 @@ class _HeroSection extends StatelessWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            _slideRoute(ServicesScreen(isadmin:  false,)),
+                            _slideRoute(ServicesScreen(isadmin: false)),
                           );
                         },
                         child: Container(
@@ -466,10 +470,10 @@ class _HeroSection extends StatelessWidget {
 // ─── Categories Row ───────────────────────────────────────────────────────────
 class _CategoriesRow extends StatelessWidget {
   final categories = const [
-    { 'image': 'assets/hair2.webp', 'label': 'Hair', 'count': '12'},
-    {'image':'assets/skin health.webp', 'label': 'Skin', 'count': '10'},
+    {'image': 'assets/hair2.webp', 'label': 'Hair', 'count': '12'},
+    {'image': 'assets/skin health.webp', 'label': 'Skin', 'count': '10'},
     {'image': 'assets/Bridal-makeup (1).webp', 'label': 'Makeup', 'count': '8'},
-   // {'image': 'assets/haircut.webp', 'label': 'Nails', 'count': '6'},
+    // {'image': 'assets/haircut.webp', 'label': 'Nails', 'count': '6'},
     {'image': 'assets/bride3.webp', 'label': 'Bridal', 'count': '5'},
   ];
 
@@ -490,63 +494,63 @@ class _CategoriesRow extends StatelessWidget {
                 Navigator.push(
                   context,
                   _slideRoute(
-                    ServicesScreen(selectedCategory: categories[i]['label']!, isadmin: false,),
+                    ServicesScreen(
+                      selectedCategory: categories[i]['label']!,
+                      isadmin: false,
+                    ),
                   ),
                 );
               },
-              child: 
+              child: Container(
+                width: 250,
+                //height: 290,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppTheme.divider),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(18),
+                        topRight: Radius.circular(18),
+                      ),
+                      child: Image.asset(
+                        categories[i]['image']!,
+                        width: double.infinity,
+                        height: 70,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
 
-Container(
-  width: 250,
-  //height: 290,
-  decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(18),
-    border: Border.all(color: AppTheme.divider),
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-
-      ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(18),
-          topRight: Radius.circular(18),
-        ),
-        child: Image.asset(
-          categories[i]['image']!,
-          width: double.infinity,
-          height: 70,
-          fit: BoxFit.cover,
-        ),
-      ),
-
-      Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              categories[i]['label']!,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+                    Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            categories[i]['label']!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "${categories[i]['count']} Services",
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppTheme.textLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "${categories[i]['count']} Services",
-               style: const TextStyle(
-                         fontSize: 10,
-                         color: AppTheme.textLight,
-                     ),
-            ),
-          ],
-        ),
-      )
-    ],
-  ),
-),
             ),
           );
         },
@@ -559,19 +563,33 @@ Container(
 class _PopularServicesRow extends StatelessWidget {
   final List<ServiceModel> services;
   const _PopularServicesRow({super.key, required this.services});
+
+ 
   @override
   Widget build(BuildContext context) {
- final popular = services;
+    
+    
+       int media() {
+    final double width = MediaQuery.of(context).size.width;
 
-    if (services.isEmpty) {
-  return const SizedBox(
-    height: 230,
-    child: Center(
-      child: CircularProgressIndicator(),
-    ),
-  );
-}
-   
+    if (width > 1200) {
+      return 5;
+    } else if (width > 900) {
+      return 4;
+    }
+
+    return 3;
+  }
+     
+    
+
+    final provider = context.watch<ServiceProvider>();
+    final popular = services;
+
+    if (provider.services.isEmpty) {
+      return ServicesShimmer(crossAxisCount: media(), count: media());
+    }
+
     return SizedBox(
       height: 230,
       child: ListView.separated(
@@ -591,10 +609,8 @@ class _PopularServicesRow extends StatelessWidget {
               ishomescreen: true,
               isadmin: false,
               size: MediaQuery.of(context).size.width,
-              onBook: () => Navigator.push(
-                context,
-                _slideRoute(BookingScreen()),
-              ),
+              onBook: () =>
+                  Navigator.push(context, _slideRoute(BookingScreen())),
             ),
           ),
         ),
@@ -652,6 +668,12 @@ class _PromoBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 PressableScale(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const OffersScreen()),
+                    );
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -902,7 +924,7 @@ class _Footer extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '123 Beauty Street,\nCoimbatore, Tamil Nadu',
+                      'Antony Church , Arumuganeri Main Road, Adaikalapuram,\nTiruchendur, Tamil Nadu',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.6),
                         fontSize: 11,
@@ -911,7 +933,7 @@ class _Footer extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '+91 98765 43210',
+                      '+91 7402052965',
                       style: TextStyle(
                         color: AppTheme.accent,
                         fontSize: 11,
@@ -927,7 +949,7 @@ class _Footer extends StatelessWidget {
           const GoldDivider(),
           const SizedBox(height: 12),
           Text(
-            '© 2024 Beauty Parlour. All Rights Reserved.',
+            '© 2026 Beauty Parlour. All Rights Reserved.',
             style: TextStyle(
               color: Colors.white.withOpacity(0.4),
               fontSize: 11,

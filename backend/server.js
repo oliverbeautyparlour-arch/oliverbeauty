@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 require("dotenv").config();
+const { OAuth2Client } = require("google-auth-library");
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
 const app = express();
@@ -11,6 +13,18 @@ app.use(cors());
 app.use(express.json())
 
 
+
+// passport.use(new GoogleStrategy({
+//     clientID: GOOGLE_CLIENT_ID,
+//     clientSecret: GOOGLE_CLIENT_SECRET,
+//     callbackURL: "http://www.example.com/auth/google/callback"
+//   },
+//   function(accessToken, refreshToken, profile, cb) {
+//     User.findOrCreate({ googleId: profile.id }, function (err, user) {
+//       return cb(err, user);
+//     });
+//   }
+// ));
 const Razorpay = require("razorpay");
 
 const PORT = process.env.PORT;
@@ -52,16 +66,39 @@ app.post("/createOrder", async (req, res) => {
 });
 
 const userauth = new mongoose.Schema({
-  email:{
-   type: String,
-  required: true,
-},
-  password: {type: String,
-required: true,
+
+  name: {
+    type: String,
+    required: true,
   },
-  name: String,
- 
-})
+
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
+  password: {
+    type: String,
+    default: null,
+  },
+
+  googleId: {
+    type: String,
+    default: null,
+  },
+
+  profilePic: {
+    type: String,
+    default: "",
+  },
+
+  provider: {
+    type: String,
+    default: "local",
+  }
+
+});
 
 const Auth = mongoose.model("Auth", userauth);
 app.post("/login", async (req, res) => {
@@ -130,6 +167,62 @@ if (existingUser) {
     });
 
   }} catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+});
+app.post("/googleLogin", async (req, res) => {
+  try {
+
+    const { idToken } = req.body;
+
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    const googleId = payload.sub;
+    const email = payload.email;
+    const name = payload.name;
+    const picture = payload.picture;
+
+    let user = await Auth.findOne({ email });
+
+    if (!user) {
+
+      user = new Auth({
+        name,
+        email,
+        googleId,
+        profilePic: picture,
+        provider: "google",
+      });
+
+      await user.save();
+
+    } else {
+
+      user.googleId = googleId;
+      user.profilePic = picture;
+      user.provider = "google";
+
+      await user.save();
+
+    }
+
+    res.json({
+      success: true,
+      message: "Google Login Successful",
+      user,
+    });
+
+  } catch (error) {
 
     res.status(500).json({
       success: false,
@@ -259,6 +352,7 @@ app.get('/TopFive', async (req, res) => {
   }
 
       },
+    
       {
         $unwind: "$service"
       },

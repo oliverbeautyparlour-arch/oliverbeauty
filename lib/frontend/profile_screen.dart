@@ -17,24 +17,28 @@ class _ProfileScreenState extends State<ProfileScreen>
   late Animation<double> _headerFade;
   late Animation<Offset> _headerSlide;
 
-
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
+ 
   bool _editing = false;
 
-Future<void> loadUserData() async {
-  final prefs = await SharedPreferences.getInstance();
+  Future<void> loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
 
-  setState(() {
-    _nameCtrl.text = prefs.getString("name") ?? "";
-    _emailCtrl.text = prefs.getString("email") ?? "";
-    _phoneCtrl.text = prefs.getString("phone") ?? "Add your Phone Number";
-  });
-}
+    print("Name: ${prefs.getString("name")}");
+    print("Email: ${prefs.getString("email")}");
+
+    setState(() {
+      _nameCtrl.text = prefs.getString("name") ?? "";
+      _emailCtrl.text = prefs.getString("email") ?? "";
+    
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    loadUserData();
     _headerCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 700),
@@ -52,7 +56,7 @@ Future<void> loadUserData() async {
     _headerCtrl.dispose();
     _nameCtrl.dispose();
     _emailCtrl.dispose();
-    _phoneCtrl.dispose();
+  
     super.dispose();
   }
 
@@ -162,7 +166,7 @@ Future<void> loadUserData() async {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          _nameCtrl.text  ,
+                          _nameCtrl.text,
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
@@ -178,29 +182,7 @@ Future<void> loadUserData() async {
                             color: Colors.white.withOpacity(0.8),
                           ),
                         ),
-                        // const SizedBox(height: 20),
-                        // // Stats row
-                        // Container(
-                        //   margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                        //   padding: const EdgeInsets.symmetric(vertical: 14),
-                        //   decoration: BoxDecoration(
-                        //     color: Colors.white.withOpacity(0.15),
-                        //     borderRadius: BorderRadius.circular(16),
-                        //     border: Border.all(
-                        //       color: Colors.white.withOpacity(0.2),
-                        //     ),
-                        //   ),
-                        //   child: Row(
-                        //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        //     children: [
-                        //       _StatItem(label: 'Bookings', value: '12'),
-                        //       _VertDivider(),
-                        //       _StatItem(label: 'Reviews', value: '5'),
-                        //       _VertDivider(),
-                        //       _StatItem(label: 'Points', value: '480'),
-                        //     ],
-                        //   ),
-                        // ),
+
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -262,45 +244,41 @@ Future<void> loadUserData() async {
                             controller: _emailCtrl,
                             enabled: _editing,
                           ),
-                          _ProfileField(
-                            label: 'Phone Number',
-                            controller: _phoneCtrl,
-                            enabled: _editing,
-                          ),
+                         
                           if (_editing) ...[
                             const SizedBox(height: 14),
-                            PressableScale(
-                              child: Container(
-                                width: double.infinity,
-                                height: 46,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      AppTheme.primary,
-                                      AppTheme.primaryDark,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(14),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppTheme.primary.withOpacity(0.35),
-                                      blurRadius: 14,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ],
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Update Profile',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            // PressableScale(
+                            //   child: Container(
+                            //     width: double.infinity,
+                            //     height: 46,
+                            //     decoration: BoxDecoration(
+                            //       gradient: const LinearGradient(
+                            //         colors: [
+                            //           AppTheme.primary,
+                            //           AppTheme.primaryDark,
+                            //         ],
+                            //       ),
+                            //       borderRadius: BorderRadius.circular(14),
+                            //       boxShadow: [
+                            //         BoxShadow(
+                            //           color: AppTheme.primary.withOpacity(0.35),
+                            //           blurRadius: 14,
+                            //           offset: const Offset(0, 5),
+                            //         ),
+                            //       ],
+                            //     ),
+                            // child: const Center(
+                            //   child: Text(
+                            //     'Update Profile',
+                            //     style: TextStyle(
+                            //       color: Colors.white,
+                            //       fontWeight: FontWeight.w800,
+                            //       fontSize: 14,
+                            //     ),
+                            //   ),
+                            // ),
+                            //  ),
+                            //),
                           ],
                         ],
                       ),
@@ -326,11 +304,7 @@ Future<void> loadUserData() async {
                             label: 'My Reviews',
                             color: AppTheme.accent,
                           ),
-                          _MenuItem(
-                            icon: Icons.account_balance_wallet_rounded,
-                            label: 'My Wallet',
-                            color: Colors.green,
-                          ),
+
                           _MenuItem(
                             icon: Icons.lock_outline_rounded,
                             label: 'Change Password',
