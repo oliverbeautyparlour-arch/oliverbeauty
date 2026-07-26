@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-//import '../theme/app_theme.dart';
-//import '../widgets/common_widgets.dart';
+import 'package:webui/frontend/api.dart';
 import 'common_widgets.dart';
 import 'app_theme.dart';
 
@@ -204,7 +203,37 @@ class _ProfileScreenState extends State<ProfileScreen>
                     child: _SectionCard(
                       title: 'Profile Information',
                       trailing: GestureDetector(
-                        onTap: () => setState(() => _editing = !_editing),
+                       
+                       onTap: () async {
+                         print("Updating profile...");
+// print("User ID: ${prefs.getString("userId")}");
+print("Name: ${_nameCtrl.text}");
+print("Email: ${_emailCtrl.text}");
+  if (_editing) {
+    final prefs = await SharedPreferences.getInstance();
+
+print("Saved Name: ${prefs.getString("name")}");
+print("Saved Email: ${prefs.getString("email")}");
+    final success = await ApiService().updateProfile(
+      userId: prefs.getString("userId")!,
+      name: _nameCtrl.text,
+      email: _emailCtrl.text,
+    );
+print("Success: $success");
+    if (success) {
+      await prefs.setString("name", _nameCtrl.text);
+      await prefs.setString("email", _emailCtrl.text);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile Updated")),
+      );
+    }
+  }
+
+  setState(() {
+    _editing = !_editing;
+  });
+},
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(
@@ -247,38 +276,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                          
                           if (_editing) ...[
                             const SizedBox(height: 14),
-                            // PressableScale(
-                            //   child: Container(
-                            //     width: double.infinity,
-                            //     height: 46,
-                            //     decoration: BoxDecoration(
-                            //       gradient: const LinearGradient(
-                            //         colors: [
-                            //           AppTheme.primary,
-                            //           AppTheme.primaryDark,
-                            //         ],
-                            //       ),
-                            //       borderRadius: BorderRadius.circular(14),
-                            //       boxShadow: [
-                            //         BoxShadow(
-                            //           color: AppTheme.primary.withOpacity(0.35),
-                            //           blurRadius: 14,
-                            //           offset: const Offset(0, 5),
-                            //         ),
-                            //       ],
-                            //     ),
-                            // child: const Center(
-                            //   child: Text(
-                            //     'Update Profile',
-                            //     style: TextStyle(
-                            //       color: Colors.white,
-                            //       fontWeight: FontWeight.w800,
-                            //       fontSize: 14,
-                            //     ),
-                            //   ),
-                            // ),
-                            //  ),
-                            //),
+                        
+                    
                           ],
                         ],
                       ),

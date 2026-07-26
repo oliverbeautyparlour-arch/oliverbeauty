@@ -6,115 +6,92 @@ import 'models.dart';
 import 'package:flutter/material.dart';
 
 class ApiService {
-// Future<Map<String, dynamic>> signup({
-//   required String name,
-//   required String email,
-//   required String password,
-//   //required String number,
-// }) async {
-//   final response = await http.post(
-//     Uri.parse("${AppConfig.API_URL}/signup"),
-//     headers: {"Content-Type": "application/json"},
-//     body: jsonEncode({
-//       "name": name,
-//       "email": email,
-//       "password": password,
-//      // "number": int.parse(number),
-//     }),
-//   );
 
-//   return jsonDecode(response.body);
-// }
-// Future<Map<String, dynamic>> login({
-//   required String name,
-//   required String password,
-// }) async {
-//   final response = await http.post(
-//     Uri.parse("${AppConfig.API_URL}/login"),
-//     headers: {"Content-Type": "application/json"},
-//     body: jsonEncode({
-//       "name": name,
-//       "password": password,
-//     }),
-//   );
+  Future<Map<String, dynamic>> signup({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.API_URL}/signup"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"name": name, "email": email, "password": password}),
+      );
 
-//   return jsonDecode(response.body);
-// }
-Future<Map<String, dynamic>> signup({
+      final decoded = jsonDecode(response.body);
+      final Map<String, dynamic> body = decoded is Map<String, dynamic>
+          ? decoded
+          : {};
+
+      // Normalize: always guarantee a "success" bool is present.
+      return {
+        "success": response.statusCode >= 200 && response.statusCode < 300,
+        "message": body["message"] ?? "Something went wrong",
+        "data": body["data"] ?? body["user"],
+        ...body,
+      };
+    } catch (e) {
+      return {"success": false, "message": "Network error. Please try again."};
+    }
+  }
+
+  Future<Map<String, dynamic>> login({
+    required String name,
+    required String password,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.API_URL}/login"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"name": name, "password": password}),
+      );
+
+      final decoded = jsonDecode(response.body);
+      final Map<String, dynamic> body = decoded is Map<String, dynamic>
+          ? decoded
+          : {};
+
+      return {
+        "success": response.statusCode >= 200 && response.statusCode < 300,
+        "message": body["message"] ?? "Something went wrong",
+        "data": body["data"] ?? body["user"],
+        ...body,
+      };
+    } catch (e) {
+      return {"success": false, "message": "Network error. Please try again."};
+    }
+  }
+
+Future<bool> updateProfile({
+  required String userId,
   required String name,
   required String email,
-  required String password,
 }) async {
-  try {
-    final response = await http.post(
-      Uri.parse("${AppConfig.API_URL}/signup"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "name": name,
-        "email": email,
-        "password": password,
-      }),
-    );
-
-    final decoded = jsonDecode(response.body);
-    final Map<String, dynamic> body =
-        decoded is Map<String, dynamic> ? decoded : {};
-
-    // Normalize: always guarantee a "success" bool is present.
-    return {
-      "success": response.statusCode >= 200 && response.statusCode < 300,
-      "message": body["message"] ?? "Something went wrong",
-      "data": body["data"] ?? body["user"],
-      ...body,
-    };
-  } catch (e) {
-    return {"success": false, "message": "Network error. Please try again."};
-  }
-}
-
-Future<Map<String, dynamic>> login({
-  required String name,
-  required String password,
-}) async {
-  try {
-    final response = await http.post(
-      Uri.parse("${AppConfig.API_URL}/login"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "name": name,
-        "password": password,
-      }),
-    );
-
-    final decoded = jsonDecode(response.body);
-    final Map<String, dynamic> body =
-        decoded is Map<String, dynamic> ? decoded : {};
-
-    return {
-      "success": response.statusCode >= 200 && response.statusCode < 300,
-      "message": body["message"] ?? "Something went wrong",
-      "data": body["data"] ?? body["user"],
-      ...body,
-    };
-  } catch (e) {
-    return {"success": false, "message": "Network error. Please try again."};
-  }
-}
-  Future<Map<String, dynamic>> createOrder({
-  required double amount,
-}) async {
-  final response = await http.post(
-    Uri.parse("${AppConfig.API_URL}/createOrder"),
+  final response = await http.put(
+    Uri.parse("${AppConfig.API_URL}/updateProfile/$userId"),
     headers: {
       "Content-Type": "application/json",
     },
     body: jsonEncode({
-      "amount": amount,
+      "name": name,
+      "email": email,
     }),
   );
 
-  return jsonDecode(response.body);
+  print("Status Code: ${response.statusCode}");
+  print("Response: ${response.body}");  
+  return response.statusCode == 200;
 }
+  Future<Map<String, dynamic>> createOrder({required double amount}) async {
+    final response = await http.post(
+      Uri.parse("${AppConfig.API_URL}/createOrder"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"amount": amount}),
+    );
+
+    return jsonDecode(response.body);
+  }
 
   Future<List<ServiceModel>> getServices() async {
     final response = await http.get(
@@ -132,9 +109,9 @@ Future<Map<String, dynamic>> login({
     }
   }
 
-  Future<List<BookingModel>> getBookings() async {
+  Future<List<BookingModel>> getBookings(String userId) async {
     final response = await http.get(
-      Uri.parse('${AppConfig.API_URL}/getBookings'),
+      Uri.parse("${AppConfig.API_URL}/getBookings/$userId"),
     );
 
     if (response.statusCode == 200) {
@@ -155,8 +132,7 @@ Future<Map<String, dynamic>> login({
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(booking.toJson()),
       );
-   
-     
+
       if (response.statusCode == 201) {
         return true;
       }
@@ -167,33 +143,30 @@ Future<Map<String, dynamic>> login({
       return false;
     }
   }
-  Future<Map<String, dynamic>> forgotPassword({required String email}) async {
-  final response = await http.post(
-    Uri.parse('${AppConfig.API_URL}/auth/forgot-password'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'email': email}),
-  );
-  return jsonDecode(response.body);
-}
-Future<Map<String, dynamic>> googleLogin(String accessToken) async {
-  final response = await http.post(
-    Uri.parse("${AppConfig.API_URL}/googleLogin"),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: jsonEncode({
-      "accessToken": accessToken,
-    }),
-  );
 
-  return jsonDecode(response.body);
-}
+  Future<Map<String, dynamic>> forgotPassword({required String email}) async {
+    final response = await http.post(
+      Uri.parse('${AppConfig.API_URL}/auth/forgot-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
+    return jsonDecode(response.body);
+  }
+
+  Future<Map<String, dynamic>> googleLogin(String accessToken) async {
+    final response = await http.post(
+      Uri.parse("${AppConfig.API_URL}/googleLogin"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"accessToken": accessToken}),
+    );
+
+    return jsonDecode(response.body);
+  }
 
   Future<List<ServiceModel>> getTopFive() async {
     final response = await http.get(Uri.parse('${AppConfig.API_URL}/TopFive'));
 
     if (response.statusCode == 200) {
-  
       final data = jsonDecode(response.body);
 
       List services = data['data'];
@@ -210,8 +183,8 @@ class BookingProvider extends ChangeNotifier {
 
   List<BookingModel> get bookings => _bookings;
 
-  Future<void> fetchBookings() async {
-    _bookings = await ApiService().getBookings();
+  Future<void> fetchBookings(String userId) async {
+    _bookings = await ApiService().getBookings(userId);
     notifyListeners();
   }
 }
@@ -243,14 +216,14 @@ class ServiceProvider extends ChangeNotifier {
 class TopServiceProvider extends ChangeNotifier {
   List<ServiceModel> _topServices = [];
 
-bool _isLoading = false;
+  bool _isLoading = false;
   List<ServiceModel> get topServices => _topServices;
-    bool get isLoading => _isLoading;
+  bool get isLoading => _isLoading;
 
   Future<void> fetchTopServices() async {
-     _isLoading = true;
+    _isLoading = true;
     notifyListeners();
-     try {
+    try {
       _topServices = await ApiService().getTopFive();
     } catch (e) {
       debugPrint(e.toString());
@@ -260,7 +233,6 @@ bool _isLoading = false;
     notifyListeners();
   }
 }
-
 
 class AuthProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
@@ -295,6 +267,14 @@ class AuthProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+  void updateProfile({
+  required String userName,
+  required String userEmail,
+}) {
+  name = userName;
+  email = userEmail;
+  notifyListeners();
+}
 
   void logout() {
     _isLoggedIn = false;

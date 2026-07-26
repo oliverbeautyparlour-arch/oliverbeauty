@@ -12,58 +12,38 @@ const app = express();
 app.use(cors());
 app.use(express.json())
 
-
-
-// passport.use(new GoogleStrategy({
-//     clientID: GOOGLE_CLIENT_ID,
-//     clientSecret: GOOGLE_CLIENT_SECRET,
-//     callbackURL: "http://www.example.com/auth/google/callback"
-//   },
-//   function(accessToken, refreshToken, profile, cb) {
-//     User.findOrCreate({ googleId: profile.id }, function (err, user) {
-//       return cb(err, user);
-//     });
-//   }
-// ));
-const Razorpay = require("razorpay");
-
 const PORT = process.env.PORT;
 
 const mongoUri = process.env.MONGODB_URI;
 
-const razorpayKey = process.env.RAZORPAY_KEY_ID;
-
-const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
-
-const razorpay = new Razorpay({
-    key_id: razorpayKey,
-    key_secret: razorpaySecret
-});
-app.post("/createOrder", async (req, res) => {
-  try {
-    const { amount } = req.body;
-
-    if (!amount || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid amount"
-      });
-    }
-
-    const order = await razorpay.orders.create({
-      amount: amount * 100,
-      currency: "INR",
-      receipt: "receipt_" + Date.now(),
-    });
-
-    res.json(order);
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
-  }
-});
+// const razorpayKey = process.env.RAZORPAY_KEY_ID;
+// const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
+// const razorpay = new Razorpay({
+//     key_id: razorpayKey,
+//     key_secret: razorpaySecret
+// });
+// app.post("/createOrder", async (req, res) => {
+//   try {
+//     const { amount } = req.body;
+//     if (!amount || amount <= 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid amount"
+//       });
+//     }
+//     // const order = await razorpay.orders.create({
+//     //   amount: amount * 100,
+//     //   currency: "INR",
+//     //   receipt: "receipt_" + Date.now(),
+//     // });
+//     // res.json(order);
+//   } catch (err) {
+//     res.status(500).json({
+//       success: false,
+//       message: err.message,
+//     });
+//   }
+// });
 
 const userauth = new mongoose.Schema({
 
@@ -132,6 +112,56 @@ app.post("/login", async (req, res) => {
       role: "user",
       message: "Login Successful",
       user,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+app.put("/updateProfile/:id", async (req, res) => {
+    console.log("Update Profile API Called");
+  console.log(req.params.id);
+  console.log(req.body);
+  try {
+    const { name, email } = req.body;
+
+    // Check if another user already has this email
+    const existingUser = await Auth.findOne({
+      email,
+      _id: { $ne: req.params.id },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already exists",
+      });
+    }
+
+    const updatedUser = await Auth.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        email,
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile Updated",
+      user: updatedUser,
     });
 
   } catch (error) {
@@ -271,15 +301,15 @@ const bookingSchema = new mongoose.Schema({
     required: true
   },
 
-  paymentType: {
-    type: String,
-    default: "Cash"
-  },
+  // paymentType: {
+  //   type: String,
+  //   default: "Cash"
+  // },
 
-  status: {
-    type: String,
-    default: "Pending"
-  },
+  // status: {
+  //   type: String,
+  //   default: "Pending"
+  // },
 
   createdAt: {
     type: Date,
@@ -309,19 +339,26 @@ app.post("/booking", async (req, res) => {
 
   }
 });
-app.get('/getBookings',async (req,res)=>{
-try{
-  const book = await Booking.find();
-  res.status(200).json({
-      success: true,
-      data: book
+app.get("/getBookings/:userId", async (req, res) => {
+  try {
+
+    const bookings = await Booking.find({
+      userId: req.params.userId
     });
+
+    res.status(200).json({
+      success: true,
+      data: bookings,
+    });
+
   } catch (error) {
+
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
-}
+
+  }
 });
 
 app.get('/TopFive', async (req, res) => { 

@@ -20,11 +20,18 @@ class _BookingsScreenState extends State<BookingsScreen>
     super.initState();
     _tab = TabController(length: 2, vsync: this);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-    Provider.of<BookingProvider>(
+    WidgetsBinding.instance.addPostFrameCallback((_) {  
+      
+       final auth = context.read<AuthProvider>();
+
+      if (auth.userId != null) {
+   Provider.of<BookingProvider>(
       context,
       listen: false,
-    ).fetchBookings();
+    ).fetchBookings(auth.userId!);
+  }
+   
+    
   });
   }
 
@@ -352,8 +359,8 @@ class _BookingCardState extends State<_BookingCard>
                           color: AppTheme.textDark,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      _StatusBadge(status: b.status),
+                     // const SizedBox(height: 6),
+                      //_StatusBadge(status: b.status),
                       const SizedBox(height: 4),
                       RotationTransition(
                         turns: Tween(begin: 0.0, end: 0.5).animate(_expandCtrl),

@@ -9,13 +9,17 @@ import 'api.dart';
 import 'package:provider/provider.dart';
 
 class BookingScreen extends StatefulWidget {
-  const BookingScreen({super.key});
+  final ServiceModel? selectedService;
+
+  const BookingScreen({super.key, this.selectedService});
   @override
   State<BookingScreen> createState() => _BookingScreenState();
 }
 
 class _BookingScreenState extends State<BookingScreen>
     with TickerProviderStateMixin {
+
+      
   int _step = 0;
   ServiceModel? _selectedService;
   final String _selectedStaff = "Josephin";
@@ -29,6 +33,7 @@ class _BookingScreenState extends State<BookingScreen>
   @override
   void initState() {
     super.initState();
+    _selectedService = widget.selectedService;
     _stepCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 450),
@@ -59,14 +64,16 @@ class _BookingScreenState extends State<BookingScreen>
   }
 
   void _back() {
-    if (_step > 0) _animateToStep(_step - 1);
+    if (_step > 0) {
+      _animateToStep(_step - 1);
+    } else {
+      Navigator.pop(context);
+    }
   }
 
- // bool animate = false;
-
-  
   @override
   Widget build(BuildContext context) {
+     final auth = context.watch<AuthProvider>();
     return Scaffold(
       backgroundColor: AppTheme.bg,
       body: Column(
@@ -82,28 +89,32 @@ class _BookingScreenState extends State<BookingScreen>
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                     child: Row(
                       children: [
-                        if (_step > 0)
-                          GestureDetector(
-                            onTap: _back,
-                            child: Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: AppTheme.surface,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back_ios_new_rounded,
-                                size: 15,
-                                color: AppTheme.textDark,
-                              ),
+                    
+                        // if (_step > 0)
+                        GestureDetector(
+                          onTap: _back,
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: AppTheme.surface,
+                              borderRadius: BorderRadius.circular(10),
                             ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              size: 15,
+                              color: AppTheme.textDark,
+                            ),
+                            
                           ),
+                        ),
+                        
                         if (_step > 0) const SizedBox(width: 12),
                         const Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                                
                               Text(
                                 'Book Appointment',
                                 style: TextStyle(
@@ -123,7 +134,7 @@ class _BookingScreenState extends State<BookingScreen>
                             ],
                           ),
                         ),
-                        if (_step == 0)
+                        if (_step == 0 && !auth.isLoggedIn)
                           Row(
                             children: [
                               Text(
@@ -133,18 +144,14 @@ class _BookingScreenState extends State<BookingScreen>
                                   color: AppTheme.textLight,
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              SizedBox(width: 9),
                               PressableScale(
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    _slideRoute(LoginScreen(islogin: true,)),
+                                    _slideRoute(LoginScreen(islogin: true)),
                                   );
 
-                                  // Navigator.push(
-                                  //   context,
-                                  //   _diagonalRoute(LoginMark())  ,
-                                  // );
                                 },
                                 child: Container(
                                   height: 30,
@@ -205,42 +212,43 @@ class _BookingScreenState extends State<BookingScreen>
           _BottomBar(
             step: _step,
             onContinue: () async {
-  if (_step == 2) {
-    if (_selectedService == null) return;
+              if (_step == 2) {
+                if (_selectedService == null) return;
 
-    final auth = context.read<AuthProvider>();
+                final auth = context.read<AuthProvider>();
 
-    // User not logged in
-    if (!auth.isLoggedIn) {
-      final success = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => LoginScreen(islogin: true),
-        ),
-      );
+                // User not logged in
+                if (!auth.isLoggedIn) {
+                  final success = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LoginScreen(islogin: true),
+                    ),
+                  );
 
-      // User cancelled login
-      if (success != true) return;
-    }
+                  // User cancelled login
+                  if (success != true) return;
+                }
 
-    // User is logged in
-    Navigator.push(
-      context,
-      _slideRoute(
-        CheckoutScreen(
-          service: _selectedService!,
-          staff: _selectedStaff,
-          date: _selectedDate ??
-              DateTime.now().add(const Duration(days: 1)),
-          time: _selectedTime ??
-              const TimeOfDay(hour: 11, minute: 0),
-        ),
-      ),
-    );
-  } else {
-    _next();
-  }
-},
+                // User is logged in
+                Navigator.push(
+                  context,
+                  _slideRoute(
+                    CheckoutScreen(
+                      service: _selectedService!,
+                      staff: _selectedStaff,
+                      date:
+                          _selectedDate ??
+                          DateTime.now().add(const Duration(days: 1)),
+                      time:
+                          _selectedTime ?? const TimeOfDay(hour: 11, minute: 0),
+                    ),
+                  ),
+                );
+              } else {
+                _next();
+              }
+            },
           ),
         ],
       ),
@@ -274,79 +282,6 @@ class _BookingScreenState extends State<BookingScreen>
     }
   }
 }
-
-// PageRouteBuilder _diagonalRoute(Widget page) => PageRouteBuilder(
-//   pageBuilder: (_, a, __) => page,
-//   transitionsBuilder: (_, a, __, child) {
-//     final animation = Tween<Offset>(
-//       begin: const Offset(-1, 1), // bottom-left
-//       end: Offset.zero, // center
-//     ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic));
-
-//     return SlideTransition(position: animation, child: child);
-//   },
-//   transitionDuration: const Duration(milliseconds: 800),
-// );
-
-// //-login mark--
-// class LoginMark extends StatefulWidget {
-//   const LoginMark({super.key});
-
-//   @override
-//   State<LoginMark> createState() => _LoginMarkState();
-// }
-
-// class _LoginMarkState extends State<LoginMark> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: AppTheme.bg,
-//       body: Stack(
-//         children: [
-//           Positioned(
-//             top: 20,
-//             right: 20,
-//             left: 410,
-
-//             child: PressableScale(
-//               onTap: () {
-//                 Navigator.push(context, _slideRoute(LoginScreen()));
-//               },
-//               child: Container(
-//                 height: 30,
-//                 width: 40,
-//                 decoration: BoxDecoration(
-//                   gradient: const LinearGradient(
-//                     colors: [AppTheme.primary, AppTheme.primaryDark],
-//                   ),
-//                   borderRadius: BorderRadius.circular(16),
-//                   boxShadow: [
-//                     BoxShadow(
-//                       color: AppTheme.primary.withOpacity(0.4),
-//                       blurRadius: 16,
-//                       offset: const Offset(0, 6),
-//                     ),
-//                   ],
-//                 ),
-//                 child: Center(
-//                   child: Text(
-//                     "Log in",
-//                     style: const TextStyle(
-//                       color: Colors.white,
-//                       fontSize: 15,
-//                       fontWeight: FontWeight.w800,
-//                       letterSpacing: 0.5,
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
 
 // ─── Step Indicator ───────────────────────────────────────────────────────────
 class _StepIndicator extends StatelessWidget {
@@ -460,13 +395,13 @@ class _SelectServiceStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  final provider = context.watch<ServiceProvider>();
+    final provider = context.watch<ServiceProvider>();
 
-if (provider.services.isEmpty) {
-  return const ServicesShimmer(crossAxisCount:1, count: 1,);
-}
+    if (provider.services.isEmpty) {
+      return const ServicesShimmer(crossAxisCount: 1, count: 1);
+    }
 
-final services = provider.services;
+    final services = provider.services;
     return Row(
       children: [
         // List
@@ -602,34 +537,18 @@ class _ServiceDetail extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Container(
-          //   height: 120,
-          //   decoration: BoxDecoration(
-          //     borderRadius: const BorderRadius.vertical(
-          //       top: Radius.circular(20),
-          //     ),
-          //     gradient: LinearGradient(
-          //       colors: [
-          //         AppTheme.primaryLight.withOpacity(0.5),
-          //         AppTheme.accentLight,
-          //       ],
-          //       begin: Alignment.topLeft,
-          //       end: Alignment.bottomRight,
-          //     ),
-          //   ),
-          //   child:
-             ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(18),
-          topRight: Radius.circular(18),
-        ),
-              child: Image.asset(
-  'assets/${service.image}',
-  width: double.infinity,
-  height: 190,
-  fit: BoxFit.cover,
-)
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
             ),
+            child: Image.asset(
+              'assets/${service.image}',
+              width: double.infinity,
+              height: 190,
+              fit: BoxFit.cover,
+            ),
+          ),
           //),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -682,12 +601,6 @@ class _ServiceDetail extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          // const Icon(
-                          //   Icons .star_rounded,
-                          //   size: 12,
-                          //   color: AppTheme.primary,
-                          // ),
-                          // const SizedBox(width: 2),
                           Text(
                             '₹${service.price.toInt()}',
                             style: const TextStyle(
@@ -709,157 +622,6 @@ class _ServiceDetail extends StatelessWidget {
     );
   }
 }
-
-// ─── Step 2: Select Staff ─────────────────────────────────────────────────────
-// class _SelectStaffStep extends StatelessWidget {
-//   final StaffModel? selected;
-//   final ValueChanged<StaffModel> onSelect;
-//   const _SelectStaffStep({required this.selected, required this.onSelect});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return ListView.builder(
-//       padding: const EdgeInsets.all(20),
-//       itemCount: allStaff.length,
-//       itemBuilder: (ctx, i) {
-//         final s = allStaff[i];
-//         final isSelected = selected?.id == s.id;
-//         return FadeSlideIn(
-//           delay: Duration(milliseconds: 80 * i),
-//           child: GestureDetector(
-//             onTap: () => onSelect(s),
-//             child: AnimatedContainer(
-//               duration: const Duration(milliseconds: 250),
-//               margin: const EdgeInsets.only(bottom: 14),
-//               padding: const EdgeInsets.all(16),
-//               decoration: BoxDecoration(
-//                 color: isSelected
-//                     ? AppTheme.primary.withOpacity(0.04)
-//                     : Colors.white,
-//                 borderRadius: BorderRadius.circular(18),
-//                 border: Border.all(
-//                   color: isSelected ? AppTheme.primary : AppTheme.divider,
-//                   width: isSelected ? 2 : 1,
-//                 ),
-//                 boxShadow: isSelected
-//                     ? [
-//                         BoxShadow(
-//                           color: AppTheme.primary.withOpacity(0.15),
-//                           blurRadius: 16,
-//                           offset: const Offset(0, 4),
-//                         ),
-//                       ]
-//                     : [
-//                         const BoxShadow(
-//                           color: Color(0x06000000),
-//                           blurRadius: 8,
-//                         ),
-//                       ],
-//               ),
-//               child: Row(
-//                 children: [
-//                   // Avatar
-//                   AnimatedContainer(
-//                     duration: const Duration(milliseconds: 250),
-//                     width: 58,
-//                     height: 58,
-//                     decoration: BoxDecoration(
-//                       shape: BoxShape.circle,
-//                       gradient: isSelected
-//                           ? const LinearGradient(
-//                               colors: [
-//                                 AppTheme.primaryLight,
-//                                 AppTheme.accentLight,
-//                               ],
-//                             )
-//                           : null,
-//                       color: isSelected ? null : AppTheme.surface,
-//                       border: Border.all(
-//                         color: isSelected ? AppTheme.primary : AppTheme.divider,
-//                         width: isSelected ? 2 : 1,
-//                       ),
-//                     ),
-//                     child: Center(
-//                       child: Text(
-//                         s.emoji,
-//                         style: const TextStyle(fontSize: 28),
-//                       ),
-//                     ),
-//                   ),
-//                   const SizedBox(width: 14),
-//                   Expanded(
-//                     child: Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         Text(
-//                           s.name,
-//                           style: TextStyle(
-//                             fontSize: 15,
-//                             fontWeight: FontWeight.w800,
-//                             color: isSelected
-//                                 ? AppTheme.primary
-//                                 : AppTheme.textDark,
-//                           ),
-//                         ),
-//                         const SizedBox(height: 3),
-//                         Text(
-//                           s.role,
-//                           style: const TextStyle(
-//                             fontSize: 12,
-//                             color: AppTheme.textLight,
-//                           ),
-//                         ),
-//                         const SizedBox(height: 6),
-//                         Row(
-//                           children: [
-//                             ...List.generate(
-//                               5,
-//                               (j) => Icon(
-//                                 j < s.rating.round()
-//                                     ? Icons.star_rounded
-//                                     : Icons.star_outline_rounded,
-//                                 size: 14,
-//                                 color: AppTheme.accent,
-//                               ),
-//                             ),
-//                             const SizedBox(width: 6),
-//                             Text(
-//                               '${s.rating} (${s.reviews} reviews)',
-//                               style: const TextStyle(
-//                                 fontSize: 11,
-//                                 color: AppTheme.textLight,
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                   AnimatedContainer(
-//                     duration: const Duration(milliseconds: 250),
-//                     width: 24,
-//                     height: 24,
-//                     decoration: BoxDecoration(
-//                       shape: BoxShape.circle,
-//                       color: isSelected ? AppTheme.primary : Colors.transparent,
-//                       border: Border.all(
-//                         color: isSelected ? AppTheme.primary : AppTheme.divider,
-//                         width: 2,
-//                       ),
-//                     ),
-//                     child: isSelected
-//                         ? const Icon(Icons.check, color: Colors.white, size: 13)
-//                         : null,
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         );
-//       },
-//     );
-//   }
-// }
 
 // ─── Step 3: Date & Time ──────────────────────────────────────────────────────
 
@@ -972,163 +734,145 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
   }
 
   Future<void> loadBookings() async {
-  
     setState(() {});
   }
 
+  DateTime selectedDate = DateTime.now();
 
-
-DateTime selectedDate = DateTime.now();
- 
   void _showMonthYearPicker() {
-  int tempMonth = selectedDate.month;
-  int tempYear = selectedDate.year;
+    int tempMonth = selectedDate.month;
+    int tempYear = selectedDate.year;
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (context) {
-      return SingleChildScrollView(
-
-        child: StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-        
-               
-                  const Text(
-                    "Select Month & Year",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-        
-                  const SizedBox(height: 20),
-        
-                  /// Year Selector
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-        
-                      IconButton(
-                        onPressed: () {
-                          setModalState(() {
-                            tempYear--;
-                          });
-                        },
-                        icon: const Icon(Icons.arrow_back_ios),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SingleChildScrollView(
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "Select Month & Year",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-        
-                      Text(
-                        "$tempYear",
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    /// Year Selector
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            setModalState(() {
+                              tempYear--;
+                            });
+                          },
+                          icon: const Icon(Icons.arrow_back_ios),
                         ),
-                      ),
-        
-                      IconButton(
-                        onPressed: () {
-                          setModalState(() {
-                            tempYear++;
-                          });
-                        },
-                        icon: const Icon(Icons.arrow_forward_ios),
-                      ),
-        
-                    ],
-                  ),
-        
-                  const SizedBox(height: 20),
-        
-                  /// Month Grid
-                  GridView.builder(
-                    shrinkWrap: true,
-                    itemCount: months.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: 2.5,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                    ),
-                    itemBuilder: (context, index) {
-        
-                      bool selected = tempMonth == index + 1;
-        
-                      return InkWell(
-                        onTap: () {
-                          setModalState(() {
-                            tempMonth = index + 1;
-                          });
-                        },
-                        child: Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? AppTheme.primaryDark
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppTheme.primaryDark,
-                            ),
+
+                        Text(
+                          "$tempYear",
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
                           ),
-                          child: Text(
-                            months[index],
-                            style: TextStyle(
+                        ),
+
+                        IconButton(
+                          onPressed: () {
+                            setModalState(() {
+                              tempYear++;
+                            });
+                          },
+                          icon: const Icon(Icons.arrow_forward_ios),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    /// Month Grid
+                    GridView.builder(
+                      shrinkWrap: true,
+                      itemCount: months.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 2.5,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                          ),
+                      itemBuilder: (context, index) {
+                        bool selected = tempMonth == index + 1;
+
+                        return InkWell(
+                          onTap: () {
+                            setModalState(() {
+                              tempMonth = index + 1;
+                            });
+                          },
+                          child: Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
                               color: selected
-                                  ? Colors.white
-                                  : AppTheme.primaryDark,
-                              fontWeight: FontWeight.bold,
+                                  ? AppTheme.primaryDark
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppTheme.primaryDark),
+                            ),
+                            child: Text(
+                              months[index],
+                              style: TextStyle(
+                                color: selected
+                                    ? Colors.white
+                                    : AppTheme.primaryDark,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-        
-                  const SizedBox(height: 25),
-        
-                  ElevatedButton(
-                    onPressed: () {
-        
-                      setState(() {
-        
-                        selectedDate = DateTime(
-                          tempYear,
-                          tempMonth,
-                          1,
                         );
-        
-                        i = tempMonth - 1;
-        
-                      });
-        
-                      int index = _getMonthStartIndex(tempMonth);
-        
-                      _scrollToIndex(index);
-        
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Done"),
-                  ),
-        
-                ],
-              ),
-            );
-          },
-        ),
-      );
-    },
-  );
-}
+                      },
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          selectedDate = DateTime(tempYear, tempMonth, 1);
+
+                          i = tempMonth - 1;
+                        });
+
+                        int index = _getMonthStartIndex(tempMonth);
+
+                        _scrollToIndex(index);
+
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Done"),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -1158,66 +902,56 @@ DateTime selectedDate = DateTime.now();
                 // color: Colors.black,
                 child: Row(
                   children: [
-                            IconButton(
+                    IconButton(
                       onPressed: () {
-                         setState(() {
+                        setState(() {
+                          selectedDate = DateTime(
+                            selectedDate.year,
+                            selectedDate.month - 1,
+                            1,
+                          );
 
-    selectedDate = DateTime(
-      selectedDate.year,
-      selectedDate.month - 1,
-      1,
-    );
+                          i = selectedDate.month + 1;
+                        });
 
-    i = selectedDate.month + 1;
-
-  });
-
-  _scrollToIndex(_getMonthStartIndex(selectedDate.month));
-
+                        _scrollToIndex(_getMonthStartIndex(selectedDate.month));
                       },
                       icon: Icon(Icons.arrow_back_ios, size: 20),
                       color: AppTheme.primaryDark,
                     ),
                     GestureDetector(
-  onTap: () {
-    _showMonthYearPicker();
-  },
-  child: Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        "${months[selectedDate.month - 1]} ${selectedDate.year}",
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      const SizedBox(width: 5),
-      const Icon(Icons.keyboard_arrow_down),
-    ],
-  ),
-),
-            
-                 
+                      onTap: () {
+                        _showMonthYearPicker();
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "${months[selectedDate.month - 1]} ${selectedDate.year}",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          const Icon(Icons.keyboard_arrow_down),
+                        ],
+                      ),
+                    ),
+
                     IconButton(
                       onPressed: () {
-                     
-                      
+                        setState(() {
+                          selectedDate = DateTime(
+                            selectedDate.year,
+                            selectedDate.month + 1,
+                            1,
+                          );
 
-  setState(() {
+                          i = selectedDate.month - 1;
+                        });
 
-    selectedDate = DateTime(
-      selectedDate.year,
-      selectedDate.month + 1,
-      1,
-    );
-
-    i = selectedDate.month - 1;
-
-  });
-
-  _scrollToIndex(_getMonthStartIndex(selectedDate.month));
-
+                        _scrollToIndex(_getMonthStartIndex(selectedDate.month));
                       },
                       icon: Icon(Icons.arrow_forward_ios, size: 20),
                       color: AppTheme.primaryDark,
@@ -1524,6 +1258,12 @@ class _CheckoutPreviewStep extends StatelessWidget {
     this.date,
     this.time,
   });
+  int discount() {
+    if (service!.price.toInt() > 1000) {
+      return 100;
+    }
+    return 0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1563,13 +1303,12 @@ class _CheckoutPreviewStep extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Center(
-                          child: 
-                         Image.asset(
-  'assets/${service!.image}',
-  width: 70,
-  height: 70,
-  fit: BoxFit.cover,
-)
+                          child: Image.asset(
+                            'assets/${service!.image}',
+                            width: 70,
+                            height: 70,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -1662,7 +1401,7 @@ class _CheckoutPreviewStep extends StatelessWidget {
                 children: [
                   _PriceRow('Service Amount', '₹${service!.price.toInt()}'),
                   const SizedBox(height: 8),
-                  _PriceRow('Discount', '- ₹50', color: Colors.green),
+                  _PriceRow('Discount', '- ${discount()}', color: Colors.green),
                   // const SizedBox(height: 8),
                   // _PriceRow(
                   //   'Tax (5%)',
@@ -1673,7 +1412,7 @@ class _CheckoutPreviewStep extends StatelessWidget {
                   const SizedBox(height: 12),
                   _PriceRow(
                     'Total Amount',
-                    '₹${(service!.price - 50 ).toStringAsFixed(2)}',
+                    '₹${(service!.price - discount()).toStringAsFixed(2)}',
                     bold: true,
                   ),
                 ],
@@ -1788,7 +1527,7 @@ class _BottomBar extends StatelessWidget {
       ),
       child: PressableScale(
         onTap: onContinue,
-        
+
         child: Container(
           height: 52,
           decoration: BoxDecoration(

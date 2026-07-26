@@ -30,7 +30,6 @@ class ServiceModel {
 }
 
 class BookingModel {
-
   final String? bookingId;
 
   final String userId;
@@ -45,9 +44,7 @@ class BookingModel {
 
   final DateTime bookingDateTime;
 
-  final String paymentType;
-
-  final String status;
+  
 
   BookingModel({
     this.bookingId,
@@ -57,14 +54,10 @@ class BookingModel {
     required this.bookedPrice,
     required this.bookedDuration,
     required this.bookingDateTime,
-    required this.paymentType,
-    required this.status,
   });
 
-  factory BookingModel.fromJson(Map<String,dynamic> json){
-
+  factory BookingModel.fromJson(Map<String, dynamic> json) {
     return BookingModel(
-
       bookingId: json["bookingId"]?.toString(),
 
       userId: json["userId"],
@@ -78,19 +71,11 @@ class BookingModel {
       bookedDuration: json["bookedDuration"],
 
       bookingDateTime: DateTime.parse(json["bookingDateTime"]),
-
-      paymentType: json["paymentType"],
-
-      status: json["status"],
-
     );
-
   }
 
-  Map<String,dynamic> toJson(){
-
+  Map<String, dynamic> toJson() {
     return {
-
       "userId": userId,
 
       "serviceId": serviceId,
@@ -102,18 +87,9 @@ class BookingModel {
       "bookedDuration": bookedDuration,
 
       "bookingDateTime": bookingDateTime.toIso8601String(),
-
-      "paymentType": paymentType,
-
-      "status": status,
-
     };
-
   }
-
 }
-
-
 
 final List<Map<String, String>> testimonials = [
   {

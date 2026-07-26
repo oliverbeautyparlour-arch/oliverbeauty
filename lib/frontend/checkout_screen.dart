@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:webui/config.dart';
 import 'package:webui/frontend/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'common_widgets.dart';
-import 'package:razorpay_web/razorpay_web.dart';
 import 'models.dart';
 import 'app_theme.dart';
 import 'api.dart';
@@ -30,8 +28,6 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     with TickerProviderStateMixin {
  
 
-  late Razorpay _razorpay;
-  int _payMethod = 0;
   bool _confirming = false;
   bool _confirmed = false;
 
@@ -41,71 +37,30 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   late Animation<double> _successScale;
   late Animation<double> _successFade;
 
+  BookingModel _createBooking() {
+    final auth = context.read<AuthProvider>();
+    return BookingModel(
+      userId: auth.userId!,
+      serviceId: widget.service.serviceId,
+      serviceName: widget.service.serviceName,
+      bookedPrice: widget.service.price,
+      bookedDuration: widget.service.durationMins,
+      bookingDateTime: DateTime(
+        widget.date.year,
+        widget.date.month,
+        widget.date.day,
+        widget.time.hour,
+        widget.time.minute,
+      ),
+   
+    );
+  }
 
-BookingModel _createBooking() {
-  final auth = context.read<AuthProvider>();
-  return BookingModel(
-
-    
-    userId: auth.userId!,
-    serviceId: widget.service.serviceId,
-    serviceName: widget.service.serviceName,
-    bookedPrice: widget.service.price,
-    bookedDuration: widget.service.durationMins,
-    bookingDateTime: DateTime(
-      widget.date.year,
-      widget.date.month,
-      widget.date.day,
-      widget.time.hour,
-      widget.time.minute,
-    ),
-    paymentType: _payMethods[_payMethod]["label"]!,
-    status: "Confirmed",
-  );
-}
-
-  final _payMethods = [
-    {'icon': '📱', 'label': 'UPI', 'sub': 'Pay using any UPI app'},
-    {
-      'icon': '💳',
-      'label': 'Credit / Debit Card',
-      'sub': 'Visa, MasterCard, Rupay',
-    },
-    {'icon': '🏦', 'label': 'Net Banking', 'sub': 'All major banks'},
-    {'icon': '💵', 'label': 'Pay at Salon', 'sub': 'Pay in cash at the salon'},
-  ];
 
   @override
   void initState() {
     super.initState();
-   
-try{
-    _razorpay = Razorpay();
 
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (response) async {
-      print(response.paymentId);
-
-      bool success = await ApiService().addBooking(_createBooking());
-
-      if (success) {
-        setState(() {
-          _confirmed = true;
-        });
-
-        _successCtrl.forward();
-      }
-    });
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (response) {
-      print(response.message);
-
-     if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(response.message ?? 'Payment failed')));
-      }
-    });}
-    catch(e,st){
-      debugPrint('Razorpay init failed: $e\n$st');
-    }
     _summaryCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -133,86 +88,45 @@ try{
 
   @override
   void dispose() {
-    _razorpay.clear();
+   
     _summaryCtrl.dispose();
     _payCtrl.dispose();
     _successCtrl.dispose();
     super.dispose();
   }
-Future<void> openCheckout() async {
-
-  final total = widget.service.price - 50;
-final auth = context.read<AuthProvider>();
-  final order = await ApiService().createOrder(
-    amount: total,
-  );
-
-  var options = {
-
-    "key":AppConfig.RAZORPAY_KEY,
-
-    "amount":order["amount"],
-
-    "order_id":order["id"],
-
-    "name":"Oliver Beauty Parlour",
-
-    "description":widget.service.serviceName,
-
-    "prefill":{
-
-      "name":auth.name,
-
-      "email":auth.email,
 
 
-    },
-
-    "theme":{
-
-      "color":"#C57B57"
-
-    }
-
-  };
-
-  _razorpay.open(options);
-
-}
 
   void _confirmBooking() async {
+  setState(() {
+    _confirming = true;
+  });
+
+  bool success = await ApiService().addBooking(_createBooking());
+
+  if (success) {
     setState(() {
-      _confirming = true;
+      _confirmed = true;
     });
 
-    if (_payMethod == 3) {
-
-   bool success = await ApiService().addBooking(_createBooking());
-
-    if (success) {
-      setState(() {
-        _confirmed = true;
-      });
-
-      _successCtrl.forward();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Booking Failed")),
-      );
-    }
-
+    _successCtrl.forward();
   } else {
-
-    
-    await openCheckout();
-
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Booking Failed")),
+    );
   }
 
   setState(() {
     _confirming = false;
   });
-  }
+}
 
+  int discount() {
+    if (widget.service.price.toInt() > 1000) {
+      return 100;
+    }
+    return 0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +139,7 @@ final auth = context.read<AuthProvider>();
   }
 
   Widget _checkoutBody(BuildContext context) {
-    final total = widget.service.price - 50;
+    final total = widget.service.price - discount();
 
     return Column(
       children: [
@@ -356,14 +270,11 @@ final auth = context.read<AuthProvider>();
                           const SizedBox(height: 6),
                           _PriceRow(
                             'Discount',
-                            '- ₹50',
+
+                            '-${discount()}',
                             color: Colors.green.shade600,
                           ),
-                          const SizedBox(height: 6),
-                          _PriceRow(
-                            'Tax (5%)',
-                            '₹${(widget.service.price * 0.05).toStringAsFixed(2)}',
-                          ),
+
                           const SizedBox(height: 14),
                           Container(
                             padding: const EdgeInsets.all(14),
@@ -404,137 +315,7 @@ final auth = context.read<AuthProvider>();
 
                 const SizedBox(height: 16),
 
-                // ── Payment method ────────────────────────────────────────────
-                SlideTransition(
-                  position:
-                      Tween<Offset>(
-                        begin: const Offset(0.15, 0),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: _payCtrl,
-                          curve: Curves.easeOutCubic,
-                        ),
-                      ),
-                  child: FadeTransition(
-                    opacity: _payCtrl,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.divider),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Payment Method',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.textDark,
-                              fontFamily: 'Georgia',
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          ...List.generate(_payMethods.length, (i) {
-                            final selected = _payMethod == i;
-                            return GestureDetector(
-                              onTap: () => setState(() => _payMethod = i),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: selected
-                                      ? AppTheme.primary.withOpacity(0.05)
-                                      : AppTheme.surface,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: selected
-                                        ? AppTheme.primary
-                                        : AppTheme.divider,
-                                    width: selected ? 2 : 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      _payMethods[i]['icon']!,
-                                      style: const TextStyle(fontSize: 22),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _payMethods[i]['label']!,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w700,
-                                              color: selected
-                                                  ? AppTheme.primary
-                                                  : AppTheme.textDark,
-                                            ),
-                                          ),
-                                          Text(
-                                            _payMethods[i]['sub']!,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: AppTheme.textLight,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 200,
-                                      ),
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: selected
-                                            ? AppTheme.primary
-                                            : Colors.transparent,
-                                        border: Border.all(
-                                          color: selected
-                                              ? AppTheme.primary
-                                              : AppTheme.divider,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: selected
-                                          ? const Icon(
-                                              Icons.check,
-                                              color: Colors.white,
-                                              size: 11,
-                                            )
-                                          : null,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'By proceeding, you agree to our Terms & Conditions',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppTheme.textLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+            
                 const SizedBox(height: 16),
               ],
             ),
@@ -624,30 +405,34 @@ class _InfoRow extends StatelessWidget {
   final String value;
   const _InfoRow(this.label, this.value);
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Row(
-      children: [
-        SizedBox(
-          width: 90,
-          child: Text(
-            '$label',
-            style: const TextStyle(fontSize: 12, color: AppTheme.textLight),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textDark,
+  Widget build(BuildContext context) =>
+     
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: Text(
+                label,
+                style: const TextStyle(color: AppTheme.textLight, fontSize: 13),
+              ),
             ),
-          ),
+
+            Expanded(
+              flex: 3,
+              child: Text(
+                value,
+                textAlign: TextAlign.end,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }
 
 class _PriceRow extends StatelessWidget {
@@ -761,9 +546,10 @@ class _SuccessView extends StatelessWidget {
                 ),
                 const SizedBox(height: 40),
                 PressableScale(
-                  onTap: () => Navigator.push(
-                    context,
+                  onTap: () => Navigator.of(context).pushAndRemoveUntil(
+                    
                     MaterialPageRoute(builder: (context) => HomeScreen()),
+                      (route) => false,
                   ),
                   child: Container(
                     padding: const EdgeInsets.symmetric(

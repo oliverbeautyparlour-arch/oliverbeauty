@@ -249,7 +249,9 @@ if (provider.services.isEmpty) {
                         Navigator.push(
                           context,
 
-                          _slideRoute(BookingScreen()),
+                          _slideRoute(BookingScreen(
+                            selectedService: s,
+                          )),
                         );
                       }
                     },

@@ -44,7 +44,7 @@ void initState() {
 }
   @override
   Widget build(BuildContext context) {
-    int _navIndex = 0;
+    
     return Scaffold(
       backgroundColor: AppTheme.bg,
 
