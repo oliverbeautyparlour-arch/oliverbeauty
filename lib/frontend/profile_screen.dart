@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webui/frontend/api.dart';
 import 'common_widgets.dart';
@@ -18,18 +19,20 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
+  
  
   bool _editing = false;
 
   Future<void> loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
+  
 
-    print("Name: ${prefs.getString("name")}");
-    print("Email: ${prefs.getString("email")}");
+     final auth = context.watch<AuthProvider>();
+      _nameCtrl.text = auth.name ?? "";
+  _emailCtrl.text = auth.email ?? "";
 
     setState(() {
-      _nameCtrl.text = prefs.getString("name") ?? "";
-      _emailCtrl.text = prefs.getString("email") ?? "";
+ Text(auth.name ?? "");
+Text(auth.email ?? "");
     
     });
   }
@@ -205,21 +208,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                       trailing: GestureDetector(
                        
                        onTap: () async {
-                         print("Updating profile...");
-// print("User ID: ${prefs.getString("userId")}");
-print("Name: ${_nameCtrl.text}");
-print("Email: ${_emailCtrl.text}");
+
   if (_editing) {
     final prefs = await SharedPreferences.getInstance();
 
-print("Saved Name: ${prefs.getString("name")}");
-print("Saved Email: ${prefs.getString("email")}");
+
     final success = await ApiService().updateProfile(
       userId: prefs.getString("userId")!,
       name: _nameCtrl.text,
       email: _emailCtrl.text,
     );
-print("Success: $success");
+
     if (success) {
       await prefs.setString("name", _nameCtrl.text);
       await prefs.setString("email", _emailCtrl.text);

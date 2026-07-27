@@ -610,7 +610,12 @@ class _PopularServicesRow extends StatelessWidget {
               isadmin: false,
               size: MediaQuery.of(context).size.width,
               onBook: () =>
-                  Navigator.push(context, _slideRoute(BookingScreen())),
+                  Navigator.push(context, _slideRoute(BookingScreen(
+                    selectedService: ServiceModel(serviceId: popular[i].serviceId, serviceName: popular[i].serviceName, 
+                    category: popular[i].category, durationMins: popular[i].durationMins, price: popular[i].price, 
+                    description: popular[i].description, image: popular[i].image)
+                  
+                  ))),
             ),
           ),
         ),
