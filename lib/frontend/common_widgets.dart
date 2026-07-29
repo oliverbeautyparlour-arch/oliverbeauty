@@ -240,7 +240,7 @@ class ServiceCard extends StatelessWidget {
               ),
               gradient: LinearGradient(
                 colors: [
-                  AppTheme.primaryLight.withOpacity(0.6),
+                  AppTheme.primaryLight.withValues(alpha:0.6),
                   AppTheme.accentLight,
                 ],
                 begin: Alignment.topLeft,
@@ -254,7 +254,7 @@ child: ClipRRect(
     topRight: Radius.circular(18),
   ),
   child: Image.asset(
-    'assets/${image}',
+    'assets/$image',
     width: double.infinity,
     height: 170,
     fit: BoxFit.cover,

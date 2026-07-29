@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:webui/admin_panel/admin_dashboard.dart';
-
 import 'package:webui/frontend/app_theme.dart';
-import 'package:webui/frontend/booking_screen.dart';
 import 'package:webui/frontend/services_screen.dart';
 
 class Admin extends StatefulWidget {
@@ -154,14 +151,14 @@ class _AdminState extends State<Admin> {
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppTheme.primaryDark.withOpacity(
+                                        color: AppTheme.primaryDark.withValues(alpha:
                                           0.2,
                                         ),
                                         offset: Offset(2, 2),
                                         blurRadius: 6,
                                       ),
                                       BoxShadow(
-                                        color: Colors.white.withOpacity(0.2),
+                                        color: Colors.white.withValues(alpha:0.2),
                                         offset: Offset(-2, -2),
                                         blurRadius: 6,
                                       ),
@@ -201,14 +198,14 @@ class _AdminState extends State<Admin> {
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppTheme.primaryDark.withOpacity(
+                                        color: AppTheme.primaryDark.withValues(alpha:
                                           0.2,
                                         ),
                                         offset: Offset(2, 2),
                                         blurRadius: 6,
                                       ),
                                       BoxShadow(
-                                        color: Colors.white.withOpacity(0.2),
+                                        color: Colors.white.withValues(alpha:0.2),
                                         offset: Offset(-2, -2),
                                         blurRadius: 6,
                                       ),

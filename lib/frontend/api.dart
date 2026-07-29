@@ -14,7 +14,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse("${AppConfig.API_URL}/signup"),
+        Uri.parse("${AppConfig.apiUrl}/signup"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"name": name, "email": email, "password": password}),
       );
@@ -42,7 +42,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse("${AppConfig.API_URL}/login"),
+        Uri.parse("${AppConfig.apiUrl}/login"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"name": name, "password": password}),
       );
@@ -69,7 +69,7 @@ Future<bool> updateProfile({
   required String email,
 }) async {
   final response = await http.put(
-    Uri.parse("${AppConfig.API_URL}/updateProfile/$userId"),
+    Uri.parse("${AppConfig.apiUrl}/updateProfile/$userId"),
     headers: {
       "Content-Type": "application/json",
     },
@@ -79,13 +79,12 @@ Future<bool> updateProfile({
     }),
   );
 
-  print("Status Code: ${response.statusCode}");
-  print("Response: ${response.body}");  
+ 
   return response.statusCode == 200;
 }
   Future<Map<String, dynamic>> createOrder({required double amount}) async {
     final response = await http.post(
-      Uri.parse("${AppConfig.API_URL}/createOrder"),
+      Uri.parse("${AppConfig.apiUrl}/createOrder"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"amount": amount}),
     );
@@ -95,7 +94,7 @@ Future<bool> updateProfile({
 
   Future<List<ServiceModel>> getServices() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.API_URL}/getService'),
+      Uri.parse('${AppConfig.apiUrl}/getService'),
     );
 
     if (response.statusCode == 200) {
@@ -111,7 +110,7 @@ Future<bool> updateProfile({
 
   Future<List<BookingModel>> getBookings(String userId) async {
     final response = await http.get(
-      Uri.parse("${AppConfig.API_URL}/getBookings/$userId"),
+      Uri.parse("${AppConfig.apiUrl}/getBookings/$userId"),
     );
 
     if (response.statusCode == 200) {
@@ -128,7 +127,7 @@ Future<bool> updateProfile({
   Future<bool> addBooking(BookingModel booking) async {
     try {
       final response = await http.post(
-        Uri.parse("${AppConfig.API_URL}/booking"),
+        Uri.parse("${AppConfig.apiUrl}/booking"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(booking.toJson()),
       );
@@ -139,14 +138,14 @@ Future<bool> updateProfile({
 
       return false;
     } catch (e) {
-      print(e);
+      
       return false;
     }
   }
 
   Future<Map<String, dynamic>> forgotPassword({required String email}) async {
     final response = await http.post(
-      Uri.parse('${AppConfig.API_URL}/auth/forgot-password'),
+      Uri.parse('${AppConfig.apiUrl}/auth/forgot-password'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email}),
     );
@@ -155,7 +154,7 @@ Future<bool> updateProfile({
 
   Future<Map<String, dynamic>> googleLogin(String accessToken) async {
     final response = await http.post(
-      Uri.parse("${AppConfig.API_URL}/googleLogin"),
+      Uri.parse("${AppConfig.apiUrl}/googleLogin"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"accessToken": accessToken}),
     );
@@ -164,7 +163,7 @@ Future<bool> updateProfile({
   }
 
   Future<List<ServiceModel>> getTopFive() async {
-    final response = await http.get(Uri.parse('${AppConfig.API_URL}/TopFive'));
+    final response = await http.get(Uri.parse('${AppConfig.apiUrl}/TopFive'));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);

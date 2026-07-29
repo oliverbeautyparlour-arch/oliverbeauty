@@ -109,7 +109,7 @@ Text(auth.email ?? "");
                                 child: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.15),
+                                    color: Colors.white.withValues(alpha:0.15),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Icon(
@@ -132,7 +132,7 @@ Text(auth.email ?? "");
                               height: 90,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha:0.2),
                                 border: Border.all(
                                   color: Colors.white,
                                   width: 3,
@@ -181,7 +181,7 @@ Text(auth.email ?? "");
                           _emailCtrl.text,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha:0.8),
                           ),
                         ),
 
@@ -352,10 +352,10 @@ Text(auth.email ?? "");
                         width: double.infinity,
                         height: 52,
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.06),
+                          color: Colors.red.withValues(alpha:0.06),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.red.withOpacity(0.15),
+                            color: Colors.red.withValues(alpha:0.15),
                           ),
                         ),
                         child: const Row(
@@ -391,35 +391,35 @@ Text(auth.email ?? "");
   }
 }
 
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-  const _StatItem({required this.label, required this.value});
-  @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-          fontFamily: 'Georgia',
-        ),
-      ),
-      Text(
-        label,
-        style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7)),
-      ),
-    ],
-  );
-}
+// class _StatItem extends StatelessWidget {
+//   final String label;
+//   final String value;
+//   const _StatItem({required this.label, required this.value});
+//   @override
+//   Widget build(BuildContext context) => Column(
+//     children: [
+//       Text(
+//         value,
+//         style: const TextStyle(
+//           fontSize: 20,
+//           fontWeight: FontWeight.w900,
+//           color: Colors.white,
+//           fontFamily: 'Georgia',
+//         ),
+//       ),
+//       Text(
+//         label,
+//         style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha:0.7)),
+//       ),
+//     ],
+//   );
+// }
 
-class _VertDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) =>
-      Container(width: 1, height: 32, color: Colors.white.withOpacity(0.2));
-}
+// class _VertDivider extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) =>
+//       Container(width: 1, height: 32, color: Colors.white.withValues(alpha:0.2));
+// }
 
 class _SectionCard extends StatelessWidget {
   final String title;
@@ -496,7 +496,7 @@ class _ProfileField extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: enabled
-                  ? AppTheme.primary.withOpacity(0.3)
+                  ? AppTheme.primary.withValues(alpha:0.3)
                   : Colors.transparent,
             ),
           ),
@@ -542,7 +542,7 @@ class _MenuItem extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 18),

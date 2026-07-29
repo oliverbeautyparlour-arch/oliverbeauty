@@ -70,7 +70,7 @@ class OffersScreen extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.primaryDark.withOpacity(.25),
+                  color: AppTheme.primaryDark.withValues(alpha:.25),
                   blurRadius: 16,
                   offset: const Offset(0, 8),
                 ),
@@ -121,7 +121,7 @@ class OffersScreen extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(.18),
+                    color: Colors.white.withValues(alpha:.18),
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: const Text(

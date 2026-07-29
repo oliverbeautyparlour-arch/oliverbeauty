@@ -267,13 +267,13 @@ class _BookingCardState extends State<_BookingCard>
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: _expanded
-                ? AppTheme.primary.withOpacity(0.3)
+                ? AppTheme.primary.withValues(alpha:0.3)
                 : AppTheme.divider,
           ),
           boxShadow: [
             BoxShadow(
               color: _expanded
-                  ? AppTheme.primary.withOpacity(0.08)
+                  ? AppTheme.primary.withValues(alpha:0.08)
                   : const Color(0x06000000),
               blurRadius: _expanded ? 20 : 8,
             ),
@@ -294,7 +294,7 @@ class _BookingCardState extends State<_BookingCard>
                       borderRadius: BorderRadius.circular(14),
                       gradient: LinearGradient(
                         colors: [
-                          AppTheme.primaryLight.withOpacity(0.5),
+                          AppTheme.primaryLight.withValues(alpha:0.5),
                           AppTheme.accentLight,
                         ],
                       ),
@@ -420,10 +420,10 @@ class _BookingCardState extends State<_BookingCard>
                                 child: Container(
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.08),
+                                    color: Colors.red.withValues(alpha:0.08),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.red.withOpacity(0.2),
+                                      color: Colors.red.withValues(alpha:0.2),
                                     ),
                                   ),
                                   child: const Center(
@@ -487,30 +487,4 @@ class _MetaChip extends StatelessWidget {
       ),
     ],
   );
-}
-
-class _StatusBadge extends StatelessWidget {
-  final String status;
-  const _StatusBadge({required this.status});
-  @override
-  Widget build(BuildContext context) {
-    final isConfirmed = status == 'Confirmed';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: isConfirmed
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: isConfirmed ? Colors.green.shade700 : Colors.orange.shade700,
-        ),
-      ),
-    );
-  }
 }

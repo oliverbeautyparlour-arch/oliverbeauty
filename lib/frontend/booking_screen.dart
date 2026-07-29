@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:webui/frontend/home_screen.dart';
 import 'package:webui/frontend/login_screen.dart';
 import 'package:webui/frontend/shimmer.dart';
 import 'app_theme.dart';
@@ -18,8 +19,6 @@ class BookingScreen extends StatefulWidget {
 
 class _BookingScreenState extends State<BookingScreen>
     with TickerProviderStateMixin {
-
-      
   int _step = 0;
   ServiceModel? _selectedService;
   final String _selectedStaff = "Josephin";
@@ -29,11 +28,31 @@ class _BookingScreenState extends State<BookingScreen>
   late AnimationController _stepCtrl;
   late Animation<double> _stepFade;
   late Animation<Offset> _stepSlide;
+  final ScrollController _scrollController = ScrollController();  
+
+void _scrollToSelectedService() {
+  if (_selectedService == null) return;
+
+  final services = context.read<ServiceProvider>().services;
+
+  final index = services.indexWhere(
+    (s) => s.serviceId == _selectedService!.serviceId,
+  );
+
+  if (index != -1) {
+    _scrollController.animateTo(
+      index * 80, // height of one tile
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
+  }
+}
 
   @override
   void initState() {
     super.initState();
     _selectedService = widget.selectedService;
+  
     _stepCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 450),
@@ -67,13 +86,17 @@ class _BookingScreenState extends State<BookingScreen>
     if (_step > 0) {
       _animateToStep(_step - 1);
     } else {
-      Navigator.pop(context);
+      Navigator.pushAndRemoveUntil(
+        context,
+        _slideRoute(HomeScreen()),
+        (route) => false,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-     final auth = context.watch<AuthProvider>();
+    final auth = context.watch<AuthProvider>();
     return Scaffold(
       backgroundColor: AppTheme.bg,
       body: Column(
@@ -89,7 +112,6 @@ class _BookingScreenState extends State<BookingScreen>
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                     child: Row(
                       children: [
-                    
                         // if (_step > 0)
                         GestureDetector(
                           onTap: _back,
@@ -105,16 +127,14 @@ class _BookingScreenState extends State<BookingScreen>
                               size: 15,
                               color: AppTheme.textDark,
                             ),
-                            
                           ),
                         ),
-                        
+
                         if (_step > 0) const SizedBox(width: 12),
                         const Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                                
                               Text(
                                 'Book Appointment',
                                 style: TextStyle(
@@ -151,7 +171,6 @@ class _BookingScreenState extends State<BookingScreen>
                                     context,
                                     _slideRoute(LoginScreen(islogin: true)),
                                   );
-
                                 },
                                 child: Container(
                                   height: 30,
@@ -166,7 +185,7 @@ class _BookingScreenState extends State<BookingScreen>
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppTheme.primary.withOpacity(
+                                        color: AppTheme.primary.withValues(alpha:
                                           0.4,
                                         ),
                                         blurRadius: 16,
@@ -231,7 +250,9 @@ class _BookingScreenState extends State<BookingScreen>
                 }
 
                 // User is logged in
+                
                 Navigator.push(
+                  
                   context,
                   _slideRoute(
                     CheckoutScreen(
@@ -261,6 +282,8 @@ class _BookingScreenState extends State<BookingScreen>
         return _SelectServiceStep(
           selected: _selectedService,
           onSelect: (s) => setState(() => _selectedService = s),
+           scrollController: _scrollController,
+            onBuilt: _scrollToSelectedService,
         );
 
       case 1:
@@ -345,7 +368,7 @@ class _StepIndicator extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: active
-                          ? AppTheme.primary.withOpacity(0.35)
+                          ? AppTheme.primary.withValues(alpha:0.35)
                           : Colors.transparent,
                       blurRadius: 10,
                     ),
@@ -391,7 +414,10 @@ class _StepIndicator extends StatelessWidget {
 class _SelectServiceStep extends StatelessWidget {
   final ServiceModel? selected;
   final ValueChanged<ServiceModel> onSelect;
-  const _SelectServiceStep({required this.selected, required this.onSelect});
+  final ScrollController scrollController;
+    final VoidCallback onBuilt;
+
+  const _SelectServiceStep({required this.selected, required this.onSelect,required this.scrollController,required this.onBuilt,});
 
   @override
   Widget build(BuildContext context) {
@@ -400,7 +426,9 @@ class _SelectServiceStep extends StatelessWidget {
     if (provider.services.isEmpty) {
       return const ServicesShimmer(crossAxisCount: 1, count: 1);
     }
-
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+  onBuilt();
+});
     final services = provider.services;
     return Row(
       children: [
@@ -408,6 +436,7 @@ class _SelectServiceStep extends StatelessWidget {
         Expanded(
           flex: 3,
           child: ListView.builder(
+            controller: scrollController,
             padding: const EdgeInsets.all(16),
             itemCount: services.length,
             itemBuilder: (ctx, i) {
@@ -426,7 +455,7 @@ class _SelectServiceStep extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppTheme.primary.withOpacity(0.06)
+                          ? AppTheme.primary.withValues(alpha:0.06)
                           : Colors.white,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
@@ -1006,7 +1035,7 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: AppTheme.primary.withOpacity(0.3),
+                                color: AppTheme.primary.withValues(alpha:0.3),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -1021,7 +1050,7 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                           style: TextStyle(
                             fontSize: 11,
                             color: isSelected
-                                ? Colors.white.withOpacity(0.8)
+                                ? Colors.white.withValues(alpha:0.8)
                                 : AppTheme.textLight,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1042,7 +1071,7 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                           style: TextStyle(
                             fontSize: 10,
                             color: isSelected
-                                ? Colors.white.withOpacity(0.7)
+                                ? Colors.white.withValues(alpha:0.7)
                                 : AppTheme.textLight,
                           ),
                         ),
@@ -1134,7 +1163,7 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: unavail
-                                  ? AppTheme.textLight.withOpacity(0.4)
+                                  ? AppTheme.textLight.withValues(alpha:0.4)
                                   : (isSelected
                                         ? Colors.white
                                         : AppTheme.textDark),
@@ -1189,7 +1218,7 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
               margin: const EdgeInsets.only(top: 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.1),
+                color: AppTheme.primary.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppTheme.primary),
               ),
@@ -1537,7 +1566,7 @@ class _BottomBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primary.withOpacity(0.4),
+                color: AppTheme.primary.withValues(alpha:0.4),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),

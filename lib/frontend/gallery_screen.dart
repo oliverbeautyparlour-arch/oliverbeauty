@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:webui/frontend/models.dart';
 import 'app_theme.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:provider/provider.dart';
-import 'api.dart';
+// import 'package:provider/provider.dart';
+// import 'api.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
@@ -80,8 +80,7 @@ class _GalleryScreenState extends State<GalleryScreen>
 
   @override
   Widget build(BuildContext context) {
-    final services =
-    context.read<ServiceProvider>().services;
+  
     return Scaffold(
       body: CustomScrollView(
         slivers: [

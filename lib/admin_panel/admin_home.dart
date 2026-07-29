@@ -16,8 +16,8 @@ class AdminHome extends StatefulWidget {
 class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
   int _navIndex = 0;
   late AnimationController _heroCtrl;
-  late Animation<double> _heroFade;
-  late Animation<Offset> _heroSlide;
+  //  late Animation<double> _heroFade;
+  // late Animation<Offset> _heroSlide;
 
   @override
   void initState() {
@@ -26,11 +26,11 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 900),
     );
-    _heroFade = CurvedAnimation(parent: _heroCtrl, curve: Curves.easeOut);
-    _heroSlide = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _heroCtrl, curve: Curves.easeOutCubic));
+    // _heroFade = CurvedAnimation(parent: _heroCtrl, curve: Curves.easeOut);
+    // _heroSlide = Tween<Offset>(
+    //   begin: const Offset(0, 0.15),
+    //   end: Offset.zero,
+    // ).animate(CurvedAnimation(parent: _heroCtrl, curve: Curves.easeOutCubic));
     _heroCtrl.forward();
     Future.microtask(() {
       context.read<ServiceProvider>().fetchServices();
@@ -51,7 +51,7 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final services = context.watch<ServiceProvider>().services;
+    // final services = context.watch<ServiceProvider>().services;
     final pages = [
       _Home(
 
@@ -74,7 +74,7 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
   }
 }
 class _Home extends StatelessWidget {
-  const _Home({super.key});
+  const _Home();
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +224,7 @@ class _Home extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(.15),
+            color: Colors.grey.withValues(alpha:.15),
             blurRadius: 10,
           )
         ],
@@ -235,7 +235,7 @@ class _Home extends StatelessWidget {
         children: [
 
           CircleAvatar(
-            backgroundColor: color.withOpacity(.15),
+            backgroundColor: color.withValues(alpha:.15),
             child: Icon(icon, color: color),
           ),
 
@@ -296,11 +296,11 @@ class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-       {'icon': Icons.home_rounded, 'label': 'Home'},
+      {'icon': Icons.home_rounded, 'label': 'Home'},
       {'icon': Icons.spa_rounded, 'label': 'Services'},
       {'icon': Icons.gamepad_outlined, 'label': 'Gallery'},
-      // {'icon': Icons.calendar_month_rounded, 'label': 'Book'},
-      // {'icon': Icons.receipt_long_rounded, 'label': 'Bookings'},
+     // {'icon': Icons.calendar_month_rounded, 'label': 'Book'},
+      //{'icon': Icons.receipt_long_rounded, 'label': 'Bookings'},
       {'icon': Icons.person_rounded, 'label': 'Profile'},
     ];
 
@@ -323,40 +323,36 @@ class _BottomNav extends StatelessWidget {
             children: List.generate(items.length, (i) {
               final selected = i == currentIndex;
               return GestureDetector(
-                onTap: () => onTap(i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeOutBack,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected ? AppTheme.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        items[i]['icon'] as IconData,
-                        color: selected ? Colors.white : AppTheme.textLight,
-                        size: 22,
-                      ),
-                      if (selected) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          items[i]['label'] as String,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              );
+  onTap: () => onTap(i),
+  child: AnimatedContainer(
+    duration: const Duration(milliseconds: 250),
+    curve: Curves.easeOut,
+    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          items[i]['icon'] as IconData,
+          color: selected ? AppTheme.primary : Colors.grey,
+          size: 24,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          items[i]['label'] as String,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: selected
+                ? FontWeight.w600
+                : FontWeight.w500,
+            color: selected
+                ? AppTheme.primary
+                : Colors.grey,
+          ),
+        ),
+      ],
+    ),
+  ),
+);
             }),
           ),
         ),
@@ -365,14 +361,14 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-PageRouteBuilder _slideRoute(Widget page) => PageRouteBuilder(
-  pageBuilder: (_, a, __) => page,
-  transitionsBuilder: (_, a, __, child) => SlideTransition(
-    position: Tween(
-      begin: const Offset(1, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
-    child: child,
-  ),
-  transitionDuration: const Duration(milliseconds: 350),
-);
+// PageRouteBuilder _slideRoute(Widget page) => PageRouteBuilder(
+//   pageBuilder: (_, a, __) => page,
+//   transitionsBuilder: (_, a, __, child) => SlideTransition(
+//     position: Tween(
+//       begin: const Offset(1, 0),
+//       end: Offset.zero,
+//     ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
+//     child: child,
+//   ),
+//   transitionDuration: const Duration(milliseconds: 350),
+// );

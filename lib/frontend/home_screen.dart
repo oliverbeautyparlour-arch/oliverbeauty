@@ -150,7 +150,7 @@ class _HomeContent extends StatelessWidget {
                 // icon: const Icon(Icons.person_outline, size: 18),
                 label: const Text("Login"),
                 style: ElevatedButton.styleFrom(
-                  shadowColor: Colors.white.withOpacity(1),
+                  shadowColor: Colors.white.withValues(alpha:1),
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
@@ -173,7 +173,7 @@ class _HomeContent extends StatelessWidget {
                 // icon: const Icon(Icons.person_outline, size: 18),
                 label: const Text("Sign up"),
                 style: ElevatedButton.styleFrom(
-                  shadowColor: Colors.green.withOpacity(0.4),
+                  shadowColor: Colors.green.withValues(alpha:0.4),
                   backgroundColor: Colors.transparent,
                   foregroundColor: Colors.green,
                   shape: RoundedRectangleBorder(
@@ -275,11 +275,16 @@ class _HomeContent extends StatelessWidget {
 }
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
-class _HeroSection extends StatelessWidget {
+class _HeroSection extends StatefulWidget {
   final Animation<double> fade;
   final Animation<Offset> slide;
-  _HeroSection({required this.fade, required this.slide});
+  const _HeroSection({required this.fade, required this.slide});
 
+  @override
+  State<_HeroSection> createState() => _HeroSectionState();
+}
+
+class _HeroSectionState extends State<_HeroSection> {
   final images = [
     //Image.asset("assets/nails2.avif"),
     Image.asset("assets/bride5.webp"),
@@ -290,7 +295,9 @@ class _HeroSection extends StatelessWidget {
     Image.asset("assets/bride2.webp"),
     Image.asset("assets/facial.webp"),
   ];
+
   int currentindex = 0;
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -308,7 +315,7 @@ class _HeroSection extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primary.withOpacity(0.35),
+                color: AppTheme.primary.withValues(alpha:0.35),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -331,35 +338,35 @@ class _HeroSection extends StatelessWidget {
         Positioned(
           top: -30,
           right: -20,
-          child: _decorCircle(120, Colors.white.withOpacity(0.07)),
+          child: _decorCircle(120, Colors.white.withValues(alpha:0.07)),
         ),
         Positioned(
           bottom: -40,
           right: 40,
-          child: _decorCircle(160, Colors.white.withOpacity(0.05)),
+          child: _decorCircle(160, Colors.white.withValues(alpha:0.05)),
         ),
         Positioned(
           top: 20,
           right: 20,
-          child: _decorCircle(60, Colors.white.withOpacity(0.1)),
+          child: _decorCircle(60, Colors.white.withValues(alpha:0.1)),
         ),
 
         Positioned(
           bottom: -40,
           left: 190,
-          child: _decorCircle(160, Colors.white.withOpacity(0.1)),
+          child: _decorCircle(160, Colors.white.withValues(alpha:0.1)),
         ),
         Positioned(
           top: -20,
           left: -20,
-          child: _decorCircle(160, Colors.white.withOpacity(0.1)),
+          child: _decorCircle(160, Colors.white.withValues(alpha:0.1)),
         ),
         Padding(
           padding: const EdgeInsets.all(28),
           child: FadeTransition(
-            opacity: fade,
+            opacity: widget.fade,
             child: SlideTransition(
-              position: slide,
+              position: widget.slide,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -388,7 +395,7 @@ class _HeroSection extends StatelessWidget {
                   Text(
                     'Experience premium beauty services\nfrom our professional experts.',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha:0.85),
                       fontSize: 13,
                       height: 1.5,
                     ),
@@ -434,7 +441,7 @@ class _HeroSection extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha:0.5),
                             ),
                             borderRadius: BorderRadius.circular(24),
                           ),
@@ -562,7 +569,7 @@ class _CategoriesRow extends StatelessWidget {
 // ─── Popular Services ─────────────────────────────────────────────────────────
 class _PopularServicesRow extends StatelessWidget {
   final List<ServiceModel> services;
-  const _PopularServicesRow({super.key, required this.services});
+  const _PopularServicesRow({ required this.services});
 
  
   @override
@@ -635,10 +642,10 @@ class _PromoBanner extends StatelessWidget {
           colors: [Color(0xFFFFF8F0), Color(0xFFF9E8D4)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.accent.withOpacity(0.3)),
+        border: Border.all(color: AppTheme.accent.withValues(alpha:0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.accent.withOpacity(0.1),
+            color: AppTheme.accent.withValues(alpha:0.1),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -906,7 +913,7 @@ class _Footer extends StatelessWidget {
                     Text(
                       'We provide the best beauty services to make you look beautiful and feel confident.',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha:0.6),
                         fontSize: 11,
                         height: 1.5,
                       ),
@@ -931,7 +938,7 @@ class _Footer extends StatelessWidget {
                     Text(
                       'Antony Church , Arumuganeri Main Road, Adaikalapuram,\nTiruchendur, Tamil Nadu',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha:0.6),
                         fontSize: 11,
                         height: 1.5,
                       ),
@@ -956,7 +963,7 @@ class _Footer extends StatelessWidget {
           Text(
             '© 2026 Beauty Parlour. All Rights Reserved.',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withValues(alpha:0.4),
               fontSize: 11,
             ),
           ),
@@ -1002,40 +1009,36 @@ class _BottomNav extends StatelessWidget {
             children: List.generate(items.length, (i) {
               final selected = i == currentIndex;
               return GestureDetector(
-                onTap: () => onTap(i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeOutBack,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected ? AppTheme.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        items[i]['icon'] as IconData,
-                        color: selected ? Colors.white : AppTheme.textLight,
-                        size: 22,
-                      ),
-                      if (selected) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          items[i]['label'] as String,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              );
+  onTap: () => onTap(i),
+  child: AnimatedContainer(
+    duration: const Duration(milliseconds: 250),
+    curve: Curves.easeOut,
+    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          items[i]['icon'] as IconData,
+          color: selected ? AppTheme.primary : Colors.grey,
+          size: 24,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          items[i]['label'] as String,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: selected
+                ? FontWeight.w600
+                : FontWeight.w500,
+            color: selected
+                ? AppTheme.primary
+                : Colors.grey,
+          ),
+        ),
+      ],
+    ),
+  ),
+);
             }),
           ),
         ),

@@ -5,7 +5,7 @@ import 'package:webui/frontend/models.dart';
 class AdminDashboard extends StatefulWidget {
     final ServiceModel service; 
 
-   AdminDashboard({super.key,
+   const AdminDashboard({super.key,
    
    required this.service,
    });
@@ -61,11 +61,7 @@ void initState() {
         ),
       ),
 
-      // body:
-      // bottomNavigationBar: BottomNav(
-      //         currentIndex: _navIndex,
-      //         onTap: (i) => setState(() => _navIndex = i),
-      //       ),,
+
       body: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
@@ -96,12 +92,12 @@ void initState() {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryDark.withOpacity(0.2),
+                                color: AppTheme.primaryDark.withValues(alpha: 0.2),
                                 offset: Offset(2, 2),
                                 blurRadius: 6,
                               ),
                               BoxShadow(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha:0.2),
                                 offset: Offset(-2, -2),
                                 blurRadius: 6,
                               ),
@@ -136,12 +132,12 @@ void initState() {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryDark.withOpacity(0.2),
+                                color: AppTheme.primaryDark.withValues(alpha:0.2),
                                 offset: Offset(2, 2),
                                 blurRadius: 6,
                               ),
                               BoxShadow(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha:0.2),
                                 offset: Offset(-2, -2),
                                 blurRadius: 6,
                               ),
@@ -176,12 +172,12 @@ void initState() {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryDark.withOpacity(0.2),
+                                color: AppTheme.primaryDark.withValues(alpha: 0.2),
                                 offset: Offset(2, 2),
                                 blurRadius: 6,
                               ),
                               BoxShadow(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 offset: Offset(-2, -2),
                                 blurRadius: 6,
                               ),
@@ -216,12 +212,12 @@ void initState() {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryDark.withOpacity(0.2),
+                                color: AppTheme.primaryDark.withValues(alpha:0.2),
                                 offset: Offset(2, 2),
                                 blurRadius: 6,
                               ),
                               BoxShadow(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha:0.2),
                                 offset: Offset(-2, -2),
                                 blurRadius: 6,
                               ),
@@ -257,12 +253,12 @@ void initState() {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryDark.withOpacity(0.2),
+                                color: AppTheme.primaryDark.withValues(alpha:0.2),
                                 offset: Offset(2, 2),
                                 blurRadius: 6,
                               ),
                               BoxShadow(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha:0.2),
                                 offset: Offset(-2, -2),
                                 blurRadius: 6,
                               ),
@@ -315,15 +311,6 @@ void initState() {
               ),
             ),
 
-            // SizedBox(height: 15),
-            // Text(
-            //   "Service Name",
-            //   style: TextStyle(
-            //     color: AppTheme.primaryLight,
-            //     fontSize: 14,
-            //   ),
-            // ),
-            // SizedBox(height: 10),
           ],
         ),
       ),
@@ -334,7 +321,7 @@ void initState() {
 class BottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
-  const BottomNav({required this.currentIndex, required this.onTap});
+  const BottomNav({super.key,required this.currentIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -342,8 +329,8 @@ class BottomNav extends StatelessWidget {
       {'icon': Icons.home_rounded, 'label': 'Home'},
       {'icon': Icons.spa_rounded, 'label': 'Services'},
       {'icon': Icons.gamepad_outlined, 'label': 'Gallery'},
-      {'icon': Icons.calendar_month_rounded, 'label': 'Book'},
-      {'icon': Icons.receipt_long_rounded, 'label': 'Bookings'},
+     // {'icon': Icons.calendar_month_rounded, 'label': 'Book'},
+      //{'icon': Icons.receipt_long_rounded, 'label': 'Bookings'},
       {'icon': Icons.person_rounded, 'label': 'Profile'},
     ];
 

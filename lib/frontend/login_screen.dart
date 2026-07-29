@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webui/frontend/app_theme.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+
+// ignore: must_be_immutable
 class LoginScreen extends StatefulWidget {
   bool islogin;
 
@@ -52,11 +54,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
       prefixIcon: Icon(icon, color: AppTheme.primaryLight),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: Colors.white.withOpacity(0.08),
+      fillColor: Colors.white.withValues(alpha:0.08),
       contentPadding:
           const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       border: OutlineInputBorder(
@@ -95,10 +97,10 @@ class _LoginScreenState extends State<LoginScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        splashColor: AppTheme.primaryDark.withOpacity(0.3),
-        highlightColor: AppTheme.primaryDark.withOpacity(0.15),
+        splashColor: AppTheme.primaryDark.withValues(alpha:0.3),
+        highlightColor: AppTheme.primaryDark.withValues(alpha:0.15),
         child: Container(
-          width: 53,
+          width: MediaQuery.of(context).size.width,
           height: 53,
           decoration: BoxDecoration(
             color: AppTheme.primaryLight,
@@ -122,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
     double width = MediaQuery.of(context).size.width;
 
     if (width > 900) {
-      for (var i = 0; i < 6; i++) {
+      for (var i = 0; i < 7; i++) {
         double top = i == 0 ? -10 : i * 100;
 
         circles.add(
@@ -187,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         "Enter your account email and we'll send you a reset link.",
                         style: TextStyle(
-                          color: AppTheme.textDark.withOpacity(0.85),
+                          color: AppTheme.textDark.withValues(alpha:0.85),
                           fontSize: 13,
                         ),
                       ),
@@ -241,9 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     setDialogState(() => sending = true);
                                     try {
                                       final api = ApiService();
-                                      // NOTE: add a `forgotPassword` method
-                                      // to ApiService that POSTs to your
-                                      // backend's password-reset endpoint.
+                                    
                                       final result = await api.forgotPassword(
                                         email:
                                             forgotEmailController.text.trim(),
@@ -349,75 +349,8 @@ class _LoginScreenState extends State<LoginScreen> {
     _showMessage(e.toString());
   }
 }
-//  Future<void> _handleGoogleSignIn() async {
-//   try {
-//     // final GoogleSignIn googleSignIn = GoogleSignIn(
-//     //   scopes: ['email'],
-//     // );
-//     final GoogleSignIn googleSignIn = GoogleSignIn(
-//   clientId: "590642734390-o0tr2lfctpe3s3otctv9le8evmjp8b93.apps.googleusercontent.com",
-//   scopes: ['email'],
-// );
-
-//     final GoogleSignInAccount? account =
-//         await googleSignIn.signIn();
-
-//     if (account == null) {
-//       return;
-//     }
-
-//     // final GoogleSignInAuthentication auth =
-//     //     await account.authentication;
 
 
-//     final GoogleSignInAuthentication auth =
-//     await account.authentication;
-//     final idToken = auth.idToken;
-// print("Access Token: ${auth.accessToken}");
-// print("ID Token: ${auth.idToken}");
-// print("Server Auth Code: ${auth.serverAuthCode}");
-
-//     if (idToken == null) {
-//       _showMessage("Unable to get Google token");
-//       return;
-//     }
-
-//     final api = ApiService();
-
-//     final result = await api.googleLogin(idToken);
-
-//     if (result["success"] == true) {
-
-//       await saveUserSession(result["user"]);
-
-//       if (!mounted) return;
-
-//       context.read<AuthProvider>().login(
-//         id: result["user"]["_id"],
-//         userName: result["user"]["name"],
-//         userEmail: result["user"]["email"],
-//       );
-
-//       Navigator.pop(context, true);
-
-//     } else {
-//       _showMessage(result["message"]);
-//     }
-
-//   } catch (e) {
-//     _showMessage(e.toString());
-//   }
-// }
-
-  Future<void> _handleFacebookSignIn() async {
-    // TODO: integrate flutter_facebook_auth — see step-by-step notes below.
-    _showMessage("Facebook sign-in isn't set up yet");
-  }
-
-  Future<void> _handleXSignIn() async {
-    // TODO: integrate X (Twitter) OAuth2 — see step-by-step notes below.
-    _showMessage("X sign-in isn't set up yet");
-  }
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) {
@@ -443,7 +376,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 id: result["data"]["_id"],
               );
           Navigator.pop(context, true);
-          if (result["role"] == "admin") {
+          if (result["data"]["name"] == "admin") {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => AdminHome()),
@@ -534,7 +467,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       Text(
                                         "Sign in with",
                                         style: TextStyle(
-                                          color: AppTheme.textDark,
+                                          color: AppTheme.primaryLight,
                                           fontSize: 18,
                                         ),
                                       ),
@@ -542,51 +475,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                       Text(
                                         "Or",
                                         style: TextStyle(
-                                          color: AppTheme.primaryLight,
+                                          color: AppTheme.textDark,
                                           fontSize: 13,
                                         ),
                                       ),
                                       const SizedBox(height: 10),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          containerbox(
-                                            onTap: _handleGoogleSignIn,
-                                            child: Text(
-                                              'G',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppTheme.primaryDark,
-                                              ),
-                                            ),
+                                      containerbox(
+                                        onTap: _handleGoogleSignIn,
+                                        child: Text(
+                                          'Google',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.primaryDark,
                                           ),
-                                          const SizedBox(width: 13),
-                                          containerbox(
-                                            onTap: _handleFacebookSignIn,
-                                            child: Text(
-                                              'f',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppTheme.primaryDark,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 13),
-                                          containerbox(
-                                            onTap: _handleXSignIn,
-                                            child: Text(
-                                              'X',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppTheme.primaryDark,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
                                       const SizedBox(height: 15),
                                     ],
@@ -868,17 +771,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-PageRouteBuilder _slideRoute(Widget page) => PageRouteBuilder(
-      pageBuilder: (_, a, __) => page,
-      transitionsBuilder: (_, a, __, child) => SlideTransition(
-        position: Tween(
-          begin: const Offset(1, 0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
-        child: child,
-      ),
-      transitionDuration: const Duration(milliseconds: 350),
-    );
+
 
 Widget _decorCircle(double size, Color color) => Container(
       width: size,

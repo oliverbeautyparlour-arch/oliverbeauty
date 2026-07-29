@@ -351,7 +351,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                     ? []
                     : [
                         BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.4),
+                          color: AppTheme.primary.withValues(alpha:0.4),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
@@ -495,7 +495,7 @@ class _SuccessView extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.4),
+                          color: AppTheme.primary.withValues(alpha:0.4),
                           blurRadius: 30,
                           offset: const Offset(0, 10),
                         ),
@@ -563,7 +563,7 @@ class _SuccessView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.4),
+                          color: AppTheme.primary.withValues(alpha:0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
