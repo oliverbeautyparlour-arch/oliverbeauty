@@ -1,11 +1,12 @@
 {
-    "name": "webui",
-    "short_name": "webui",
+    "name": "Oliver Beauty Parlour",
+    "short_name": "Oliver Beauty",
     "start_url": ".",
+    "scope": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFF7F0",
+    "theme_color": "#B76E79",
+    "description": "Oliver Beauty Parlour — bridal makeup, hair styling, skincare and beauty treatments in Tiruchendur.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
