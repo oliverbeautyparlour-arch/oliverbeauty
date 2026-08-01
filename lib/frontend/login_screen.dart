@@ -20,8 +20,8 @@ class LoginScreen extends StatefulWidget {
 Future<void> saveUserSession(Map<String, dynamic> user) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString("userId", user["_id"] ?? "");
-  await prefs.setString("name", user["name"] ?? "");
-  await prefs.setString("email", user["email"] ?? "");
+  // await prefs.setString("name", user["name"] ?? "");
+  // await prefs.setString("email", user["email"] ?? "");
   await prefs.setBool("isLoggedIn", true);
 }
 

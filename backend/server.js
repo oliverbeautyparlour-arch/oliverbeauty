@@ -121,7 +121,29 @@ app.post("/login", async (req, res) => {
     });
   }
 });
+app.get("/profile/:id", async (req, res) => {
+  try {
+    const user = await Auth.findById(req.params.id).select("name email");
 
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 app.put("/updateProfile/:id", async (req, res) => {
     console.log("Update Profile API Called");
   console.log(req.params.id);

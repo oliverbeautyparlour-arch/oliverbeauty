@@ -175,6 +175,27 @@ Future<bool> updateProfile({
       throw Exception('Failed to load top services');
     }
   }
+Future<Map<String, dynamic>?> getProfile(String userId) async {
+  try {
+    final response = await http.get(
+      Uri.parse("${AppConfig.apiUrl}/profile/$userId"),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    );
+
+print("Status: ${response.statusCode}");
+print("Body: ${response.body}");
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+  } catch (e) {
+    debugPrint(e.toString());
+  }
+
+  return null;
+}
+
 }
 
 class BookingProvider extends ChangeNotifier {

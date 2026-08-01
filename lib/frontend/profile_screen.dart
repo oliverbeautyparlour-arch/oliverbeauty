@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webui/frontend/api.dart';
 import 'common_widgets.dart';
@@ -24,18 +24,23 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _editing = false;
 
   Future<void> loadUserData() async {
-  
+  final prefs = await SharedPreferences.getInstance();
 
-     final auth = context.watch<AuthProvider>();
-      _nameCtrl.text = auth.name ?? "";
-  _emailCtrl.text = auth.email ?? "";
+  final userId = prefs.getString("userId");
+   print("User ID: $userId");
 
+  if (userId == null || userId.isEmpty) return;
+
+  final result = await ApiService().getProfile(userId);
+  print(result);
+
+  if (result != null && result["success"] == true && mounted) {
     setState(() {
- Text(auth.name ?? "");
-Text(auth.email ?? "");
-    
+      _nameCtrl.text = result["data"]["name"];
+      _emailCtrl.text = result["data"]["email"];
     });
   }
+}
 
   @override
   void initState() {
@@ -220,8 +225,7 @@ Text(auth.email ?? "");
     );
 
     if (success) {
-      await prefs.setString("name", _nameCtrl.text);
-      await prefs.setString("email", _emailCtrl.text);
+      await loadUserData();
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Profile Updated")),
@@ -391,35 +395,6 @@ Text(auth.email ?? "");
   }
 }
 
-// class _StatItem extends StatelessWidget {
-//   final String label;
-//   final String value;
-//   const _StatItem({required this.label, required this.value});
-//   @override
-//   Widget build(BuildContext context) => Column(
-//     children: [
-//       Text(
-//         value,
-//         style: const TextStyle(
-//           fontSize: 20,
-//           fontWeight: FontWeight.w900,
-//           color: Colors.white,
-//           fontFamily: 'Georgia',
-//         ),
-//       ),
-//       Text(
-//         label,
-//         style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha:0.7)),
-//       ),
-//     ],
-//   );
-// }
-
-// class _VertDivider extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) =>
-//       Container(width: 1, height: 32, color: Colors.white.withValues(alpha:0.2));
-// }
 
 class _SectionCard extends StatelessWidget {
   final String title;
