@@ -5,11 +5,11 @@ import 'package:webui/frontend/app_theme.dart';
 import 'package:webui/frontend/models.dart';
 
 class AdminDashboard extends StatefulWidget {
-    final ServiceModel service; 
+    final ServiceModel? service; 
 
    const AdminDashboard({super.key,
    
-   required this.service,
+    this.service,
    });
    
 
@@ -31,19 +31,19 @@ void initState() {
   super.initState();
 
   serviceController =
-      TextEditingController(text: widget.service.serviceName);
+      TextEditingController(text: widget.service?.serviceName ?? "");
 
   durationController =
-      TextEditingController(text: widget.service.durationMins.toString());
+      TextEditingController(text: widget.service?.durationMins.toString() ?? "");
 
   priceController =
-      TextEditingController(text: widget.service.price.toString());
+      TextEditingController(text: widget.service?.price.toString()?? "");
 
   categoryController =
-      TextEditingController(text: widget.service.category);
+      TextEditingController(text: widget.service?.category ?? "");
 
   descriptionController =
-      TextEditingController(text: widget.service.description);
+      TextEditingController(text: widget.service?.description ?? "");
 }
 @override
   void dispose() {
@@ -53,7 +53,8 @@ void initState() {
     categoryController.dispose();
     descriptionController.dispose();
     super.dispose();
-  }Future<void> _saveChanges() async {
+  }
+  Future<void> _saveChanges() async {
     final duration = int.tryParse(durationController.text.trim());
     final price = double.tryParse(priceController.text.trim());
 
@@ -70,7 +71,7 @@ void initState() {
     setState(() => _isSaving = true);
 
     final success = await ApiService().updateService(
-      serviceId: widget.service.serviceId,
+      serviceId: widget.service!.serviceId,
       serviceName: serviceController.text.trim(),
       category: categoryController.text.trim(),
       durationMins: duration,
@@ -91,7 +92,51 @@ void initState() {
       );
     }
   }
+Future<void> _addService() async {
+  final duration = int.tryParse(durationController.text.trim());
+  final price = double.tryParse(priceController.text.trim());
 
+  if (serviceController.text.trim().isEmpty ||
+      categoryController.text.trim().isEmpty ||
+      descriptionController.text.trim().isEmpty ||
+      duration == null ||
+      price == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Please fill all fields with valid values"),
+      ),
+    );
+    return;
+  }
+
+  setState(() => _isSaving = true);
+
+  final success = await ApiService().addService(
+    serviceName: serviceController.text.trim(),
+    category: categoryController.text.trim(),
+    durationMins: duration,
+    price: price,
+    description: descriptionController.text.trim(),
+  );
+
+  if (!mounted) return;
+  setState(() => _isSaving = false);
+
+  if (success) {
+    await context.read<ServiceProvider>().fetchServices();
+    if (!mounted) return;
+
+    Navigator.pop(context);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Service added successfully")),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Failed to add service. Try again.")),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     
@@ -101,7 +146,11 @@ void initState() {
       appBar: AppBar(
         backgroundColor: AppTheme.primaryLight,
         title: Text(
-          widget.service.serviceName,
+        
+  widget.service == null
+      ? "Add Service"
+      : "Edit Service",
+
           style: TextStyle(
             color: AppTheme.textDark,
             fontSize: 21,
@@ -341,7 +390,15 @@ void initState() {
       style: ElevatedButton.styleFrom(
         backgroundColor: AppTheme.bgCard,
       ),
-      onPressed: _isSaving ? null : _saveChanges,
+     onPressed: _isSaving
+    ? null
+    : () {
+        if (widget.service == null) {
+          _addService();
+        } else {
+          _saveChanges();
+        }
+      },
       child: _isSaving
           ? SizedBox(
               width: 20,

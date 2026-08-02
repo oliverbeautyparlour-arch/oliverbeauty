@@ -184,6 +184,31 @@ Future<DashboardModel> getDashboard() async {
   } else {
     throw Exception('Failed to load dashboard');
   }
+}Future<bool> addService({
+  required String serviceName,
+  required String category,
+  required int durationMins,
+  required double price,
+  required String description,
+}) async {
+  try {
+    final response = await http.post(
+      Uri.parse("${AppConfig.apiUrl}/addService"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "serviceName": serviceName,
+        "category": category,
+        "durationMins": durationMins,
+        "price": price,
+        "description": description,
+      }),
+    );
+
+    return response.statusCode == 201 || response.statusCode == 200;
+  } catch (e) {
+    debugPrint(e.toString());
+    return false;
+  }
 }
 Future<bool> updateService({
   required String serviceId,
@@ -246,29 +271,7 @@ class BookingProvider extends ChangeNotifier {
   }
 }
 
-// class ServiceProvider extends ChangeNotifier {
-//   List<ServiceModel> _services = [];
 
-//   bool _isLoading = false;
-
-//   List<ServiceModel> get services => _services;
-
-//   bool get isLoading => _isLoading;
-
-//   Future<void> fetchServices() async {
-//     _isLoading = true;
-//     notifyListeners();
-
-//     try {
-//       _services = await ApiService().getServices();
-//     } catch (e) {
-//       debugPrint(e.toString());
-//     }
-
-//     _isLoading = false;
-//     notifyListeners();
-//   }
-// }
 class ServiceProvider extends ChangeNotifier {
   List<ServiceModel> _services = [];
   bool _isLoading = false;

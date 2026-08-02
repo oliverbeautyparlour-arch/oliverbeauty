@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:webui/admin_panel/admin_dashboard.dart';
 import 'package:webui/frontend/api.dart';
 import 'package:webui/frontend/app_theme.dart';
 import 'package:webui/frontend/gallery_screen.dart';
@@ -113,13 +114,26 @@ class _Home extends StatelessWidget {
             children: [
               const SizedBox(height: 20),
 
-              Text(
-                "Welcome Admin 👋",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryDark,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    "Welcome Admin 👋",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryDark,
+                    ),
+                  ),
+                  ElevatedButton.icon(onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=> AdminDashboard()
+                    ));
+                  }, label:Text("Add Service", style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryDark,
+                    ),))
+                ],
               ),
 
               const SizedBox(height: 8),

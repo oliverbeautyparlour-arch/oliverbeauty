@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
 const { OAuth2Client } = require("google-auth-library");
 
@@ -556,25 +557,30 @@ const serviceSchema = new mongoose.Schema({
     image:String,
 });
 const Service = mongoose.model("Service", serviceSchema);
-app.post('/addService', async (req, res) => {
+app.post("/addService", async (req, res) => {
   try {
-    const service = new Service(
-             req.body
-
-);
+    const service = new Service({
+      serviceId: uuidv4(),
+      serviceName: req.body.serviceName,
+      category: req.body.category,
+      durationMins: req.body.durationMins,
+      price: req.body.price,
+      description: req.body.description,
+      image: req.body.image ?? "",
+    });
 
     const savedService = await service.save();
 
-
     res.status(201).json({
+      success: true,
       message: "Service added successfully",
-      data: savedService
+      data: savedService,
     });
 
   } catch (error) {
     res.status(500).json({
-      message: "Error saving service",
-      error: error.message
+      success: false,
+      message: error.message,
     });
   }
 });
