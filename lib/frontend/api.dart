@@ -185,6 +185,33 @@ Future<DashboardModel> getDashboard() async {
     throw Exception('Failed to load dashboard');
   }
 }
+Future<bool> updateService({
+  required String serviceId,
+  required String serviceName,
+  required String category,
+  required int durationMins,
+  required double price,
+  required String description,
+}) async {
+  try {
+    final response = await http.put(
+      Uri.parse("${AppConfig.apiUrl}/updateService/$serviceId"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "serviceName": serviceName,
+        "category": category,
+        "durationMins": durationMins,
+        "price": price,
+        "description": description,
+      }),
+    );
+
+    return response.statusCode == 200;
+  } catch (e) {
+    debugPrint(e.toString());
+    return false;
+  }
+}
 Future<Map<String, dynamic>?> getProfile(String userId) async {
   try {
     final response = await http.get(
@@ -219,13 +246,34 @@ class BookingProvider extends ChangeNotifier {
   }
 }
 
+// class ServiceProvider extends ChangeNotifier {
+//   List<ServiceModel> _services = [];
+
+//   bool _isLoading = false;
+
+//   List<ServiceModel> get services => _services;
+
+//   bool get isLoading => _isLoading;
+
+//   Future<void> fetchServices() async {
+//     _isLoading = true;
+//     notifyListeners();
+
+//     try {
+//       _services = await ApiService().getServices();
+//     } catch (e) {
+//       debugPrint(e.toString());
+//     }
+
+//     _isLoading = false;
+//     notifyListeners();
+//   }
+// }
 class ServiceProvider extends ChangeNotifier {
   List<ServiceModel> _services = [];
-
   bool _isLoading = false;
 
   List<ServiceModel> get services => _services;
-
   bool get isLoading => _isLoading;
 
   Future<void> fetchServices() async {
@@ -242,7 +290,6 @@ class ServiceProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-
 class TopServiceProvider extends ChangeNotifier {
   List<ServiceModel> _topServices = [];
 

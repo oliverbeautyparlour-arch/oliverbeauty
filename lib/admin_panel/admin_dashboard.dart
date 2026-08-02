@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:webui/frontend/api.dart';
 import 'package:webui/frontend/app_theme.dart';
 import 'package:webui/frontend/models.dart';
 
@@ -22,6 +24,7 @@ late TextEditingController durationController;
 late TextEditingController priceController;
 late TextEditingController categoryController;
 late TextEditingController descriptionController;
+  bool _isSaving = false;
 
   @override
 void initState() {
@@ -42,6 +45,53 @@ void initState() {
   descriptionController =
       TextEditingController(text: widget.service.description);
 }
+@override
+  void dispose() {
+    serviceController.dispose();
+    durationController.dispose();
+    priceController.dispose();
+    categoryController.dispose();
+    descriptionController.dispose();
+    super.dispose();
+  }Future<void> _saveChanges() async {
+    final duration = int.tryParse(durationController.text.trim());
+    final price = double.tryParse(priceController.text.trim());
+
+    if (serviceController.text.trim().isEmpty ||
+        categoryController.text.trim().isEmpty ||
+        duration == null ||
+        price == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields with valid values")),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    final success = await ApiService().updateService(
+      serviceId: widget.service.serviceId,
+      serviceName: serviceController.text.trim(),
+      category: categoryController.text.trim(),
+      durationMins: duration,
+      price: price,
+      description: descriptionController.text.trim(),
+    );
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (success) {
+      await context.read<ServiceProvider>().fetchServices();
+      if (!mounted) return;
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to update service. Try again.")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     
@@ -287,23 +337,29 @@ void initState() {
                         SizedBox(height: 20),
                                     
                         Center(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.bgCard,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              "Save",
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: AppTheme.primary,
-                                // backgroundColor: AppTheme.bgCard,
-                              ),
-                            ),
-                          ),
-                        ),
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.bgCard,
+      ),
+      onPressed: _isSaving ? null : _saveChanges,
+      child: _isSaving
+          ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppTheme.primary,
+              ),
+            )
+          : Text(
+              "Save",
+              style: TextStyle(
+                fontSize: 18,
+                color: AppTheme.primary,
+              ),
+            ),
+    ),
+  ),
                       ],
                     ),
                   ),

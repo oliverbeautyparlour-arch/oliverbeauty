@@ -464,14 +464,14 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-PageRouteBuilder _slideRoute(Widget page) => PageRouteBuilder(
-  pageBuilder: (_, a, __) => page,
-  transitionsBuilder: (_, a, __, child) => SlideTransition(
-    position: Tween(
-      begin: const Offset(1, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
-    child: child,
-  ),
-  transitionDuration: const Duration(milliseconds: 350),
-);
+// PageRouteBuilder _slideRoute(Widget page) => PageRouteBuilder(
+//   pageBuilder: (_, a, __) => page,
+//   transitionsBuilder: (_, a, __, child) => SlideTransition(
+//     position: Tween(
+//       begin: const Offset(1, 0),
+//       end: Offset.zero,
+//     ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
+//     child: child,
+//   ),
+//   transitionDuration: const Duration(milliseconds: 350),
+// );

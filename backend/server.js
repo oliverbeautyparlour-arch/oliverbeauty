@@ -144,12 +144,40 @@ app.get("/profile/:id", async (req, res) => {
     });
   }
 });
+app.put('/updateService/:serviceId', async (req, res) => {
+  try {
+    const updated = await Service.findOneAndUpdate(
+      { serviceId: req.params.serviceId },
+      req.body,
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Service updated successfully",
+      data: updated
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
 app.put("/updateProfile/:id", async (req, res) => {
     console.log("Update Profile API Called");
   console.log(req.params.id);
   console.log(req.body);
   try {
-    const { name, email } = req.body;
+    const { name, email } = req.body  ;
 
     // Check if another user already has this email
     const existingUser = await Auth.findOne({
