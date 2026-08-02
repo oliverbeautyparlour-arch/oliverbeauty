@@ -6,6 +6,7 @@ class ServiceModel {
   final double price;
   final String description;
   final String image;
+    final int totalBookings;
 
   ServiceModel({
     required this.serviceId,
@@ -15,6 +16,7 @@ class ServiceModel {
     required this.price,
     required this.description,
     required this.image,
+     this.totalBookings = 0,
   });
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
@@ -25,10 +27,32 @@ class ServiceModel {
       durationMins: json['durationMins'] ?? 0,
       description: json['description'] ?? '',
       image: json['image'] ?? '',
+       totalBookings: json['totalBookings'] ?? 0,
     );
   }
 }
+class DashboardModel {
+  final int bookings;
+  final int customers;
+  final int services;
+  final double revenue;
 
+  DashboardModel({
+    required this.bookings,
+    required this.customers,
+    required this.services,
+    required this.revenue,
+  });
+
+  factory DashboardModel.fromJson(Map<String, dynamic> json) {
+    return DashboardModel(
+      bookings: json["totalBookings"] ?? 0,
+      customers: json["totalCustomers"] ?? 0,
+      services: json["totalServices"] ?? 0,
+      revenue: (json["revenue"] ?? 0).toDouble(),
+    );
+  }
+}
 class BookingModel {
   final String? bookingId;
 

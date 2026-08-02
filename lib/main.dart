@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../frontend/api.dart';
 
 
+
 Future<void> main()  async{
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -20,6 +21,7 @@ Future<void> main()  async{
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => ServiceProvider()),
 
         ChangeNotifierProvider(create: (_) => BookingProvider()),

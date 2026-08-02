@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:webui/frontend/api.dart';
 import 'package:webui/frontend/app_theme.dart';
 import 'package:webui/frontend/gallery_screen.dart';
 import 'package:webui/frontend/profile_screen.dart';
 import 'package:webui/frontend/services_screen.dart';
-import 'package:webui/frontend/api.dart';
 import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -16,21 +17,17 @@ class AdminHome extends StatefulWidget {
 class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
   int _navIndex = 0;
   late AnimationController _heroCtrl;
-  //  late Animation<double> _heroFade;
-  // late Animation<Offset> _heroSlide;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DashboardProvider>().fetchDashboard();
+    });
     _heroCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
     );
-    // _heroFade = CurvedAnimation(parent: _heroCtrl, curve: Curves.easeOut);
-    // _heroSlide = Tween<Offset>(
-    //   begin: const Offset(0, 0.15),
-    //   end: Offset.zero,
-    // ).animate(CurvedAnimation(parent: _heroCtrl, curve: Curves.easeOutCubic));
     _heroCtrl.forward();
     Future.microtask(() {
       context.read<ServiceProvider>().fetchServices();
@@ -51,14 +48,10 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    // final services = context.watch<ServiceProvider>().services;
     final pages = [
-      _Home(
-
-      ),
+      const _Home(),
       const ServicesScreen(isadmin: true),
       const GalleryScreen(),
-  
       const ProfileScreen(),
     ];
     return Scaffold(
@@ -73,139 +66,288 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
     );
   }
 }
+
 class _Home extends StatelessWidget {
   const _Home();
 
+  String _formatCurrency(double amount) {
+    final isNegative = amount < 0;
+    final value = amount.abs().toStringAsFixed(0);
+    String result = '';
+    int count = 0;
+
+    for (int i = value.length - 1; i >= 0; i--) {
+      result = value[i] + result;
+      count++;
+      final remaining = i;
+      if (remaining > 0) {
+        if (count == 3) {
+          result = ',$result';
+        } else if (count > 3 && (count - 3) % 2 == 0) {
+          result = ',$result';
+        }
+      }
+    }
+    return "${isNegative ? '-' : ''}₹$result";
+  }
+
   @override
   Widget build(BuildContext context) {
+    final dashboardProvider = context.watch<DashboardProvider>();
+    final topServiceProvider = context.watch<TopServiceProvider>();
+    final dashboard = dashboardProvider.dashboard;
+
     return Scaffold(
       backgroundColor: AppTheme.bg,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      body: RefreshIndicator(
+        color: AppTheme.primary,
+        onRefresh: () async {
+          await context.read<DashboardProvider>().fetchDashboard();
+          await context.read<TopServiceProvider>().fetchTopServices();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+
+              Text(
+                "Welcome Admin 👋",
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryDark,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                "Here's today's business summary",
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 16,
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              if (dashboardProvider.isLoading && dashboard == null)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: CircularProgressIndicator(color: AppTheme.primary),
+                  ),
+                )
+              else if (dashboard == null)
+                _errorBox("Couldn't load dashboard data", () {
+                  context.read<DashboardProvider>().fetchDashboard();
+                })
+              else
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
+                  childAspectRatio: 1.4,
+                  children: [
+                    dashboardCard(
+                      Icons.calendar_today,
+                      "${dashboard.bookings}",
+                      "Bookings",
+                      Colors.blue,
+                    ),
+                    dashboardCard(
+                      Icons.currency_rupee,
+                      _formatCurrency(dashboard.revenue),
+                      "Revenue",
+                      Colors.green,
+                    ),
+                    dashboardCard(
+                      Icons.people,
+                      "${dashboard.customers}",
+                      "Customers",
+                      Colors.orange,
+                    ),
+                    dashboardCard(
+                      Icons.spa,
+                      "${dashboard.services}",
+                      "Services",
+                      Colors.purple,
+                    ),
+                  ],
+                ),
+
+              const SizedBox(height: 30),
+
+              Text(
+                "Top Booked Services",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryDark,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              Container(
+                height: 300,
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(12, 20, 20, 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha: .15),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: topServiceProvider.isLoading && topServiceProvider.topServices.isEmpty
+                    ? Center(child: CircularProgressIndicator(color: AppTheme.primary))
+                    : topServiceProvider.topServices.isEmpty
+                        ? Center(
+                            child: Text(
+                              "No bookings yet",
+                              style: TextStyle(color: Colors.grey.shade500),
+                            ),
+                          )
+                        : BarChart(
+                            BarChartData(
+                              alignment: BarChartAlignment.spaceAround,
+                              maxY: (topServiceProvider.topServices
+                                          .map((s) => s.totalBookings)
+                                          .reduce((a, b) => a > b ? a : b) +
+                                      2)
+                                  .toDouble(),
+                              gridData: FlGridData(
+                                show: true,
+                                drawVerticalLine: false,
+                                horizontalInterval: 1,
+                                getDrawingHorizontalLine: (value) => FlLine(
+                                  color: Colors.grey.withValues(alpha: .15),
+                                  strokeWidth: 1,
+                                ),
+                              ),
+                              borderData: FlBorderData(show: false),
+                              titlesData: FlTitlesData(
+                                topTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                rightTitles: const AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 28,
+                                    interval: 1,
+                                    getTitlesWidget: (value, meta) {
+                                      if (value != value.roundToDouble()) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return Text(
+                                        value.toInt().toString(),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    reservedSize: 36,
+                                    getTitlesWidget: (value, meta) {
+                                      final i = value.toInt();
+                                      if (i < 0 || i >= topServiceProvider.topServices.length) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      final name = topServiceProvider.topServices[i].serviceName;
+                                      final shortName = name.length > 8
+                                          ? '${name.substring(0, 8)}…'
+                                          : name;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
+                                          shortName,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: AppTheme.primaryDark,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              barTouchData: BarTouchData(
+                                touchTooltipData: BarTouchTooltipData(
+                                  getTooltipColor: (_) => AppTheme.primaryDark,
+                                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                    final service = topServiceProvider.topServices[group.x.toInt()];
+                                    return BarTooltipItem(
+                                      "${service.serviceName}\n${rod.toY.toInt()} bookings",
+                                      const TextStyle(color: Colors.white, fontSize: 12),
+                                    );
+                                  },
+                                ),
+                              ),
+                              barGroups: List.generate(
+                                topServiceProvider.topServices.length,
+                                (i) {
+                                  final service = topServiceProvider.topServices[i];
+                                  return BarChartGroupData(
+                                    x: i,
+                                    barRods: [
+                                      BarChartRodData(
+                                        toY: service.totalBookings.toDouble(),
+                                        width: 22,
+                                        borderRadius: BorderRadius.circular(6),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.bottomCenter,
+                                          end: Alignment.topCenter,
+                                          colors: [
+                                            AppTheme.primary,
+                                            AppTheme.primaryLight,
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _errorBox(String message, VoidCallback onRetry) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 30),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            const SizedBox(height: 20),
-
-            Text(
-              "Welcome Admin 👋",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryDark,
-              ),
-            ),
-
+            Icon(Icons.error_outline, color: Colors.grey.shade400, size: 32),
             const SizedBox(height: 8),
-
-            Text(
-              "Here's today's business summary",
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 16,
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 15,
-              mainAxisSpacing: 15,
-              childAspectRatio: 1.4,
-              children: [
-
-                dashboardCard(
-                  Icons.calendar_today,
-                  "248",
-                  "Bookings",
-                  Colors.blue,
-                ),
-
-                dashboardCard(
-                  Icons.currency_rupee,
-                  "₹1,24,500",
-                  "Revenue",
-                  Colors.green,
-                ),
-
-                dashboardCard(
-                  Icons.people,
-                  "156",
-                  "Customers",
-                  Colors.orange,
-                ),
-
-                dashboardCard(
-                  Icons.spa,
-                  "12",
-                  "Services",
-                  Colors.purple,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 30),
-
-            Text(
-              "Bookings by Service",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryDark,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            Container(
-              height: 300,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Center(
-                child: Text(
-                  "Bar Chart Here",
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            Text(
-              "Today Schedules",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryDark,
-              ),
-            ),
-
-            const SizedBox(height: 15),
-
-            bookingTile(
-              "Sindhu",
-              "Hair Spa",
-              "₹800",
-            ),
-
-            bookingTile(
-              "Priya",
-              "Facial",
-              "₹600",
-            ),
-
-            bookingTile(
-              "Anitha",
-              "Bridal Makeup",
-              "₹4500",
-            ),
+            Text(message, style: TextStyle(color: Colors.grey.shade500)),
+            const SizedBox(height: 8),
+            TextButton(onPressed: onRetry, child: const Text("Retry")),
           ],
         ),
       ),
@@ -213,18 +355,18 @@ class _Home extends StatelessWidget {
   }
 
   Widget dashboardCard(
-      IconData icon,
-      String value,
-      String title,
-      Color color,
-      ) {
+    IconData icon,
+    String value,
+    String title,
+    Color color,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha:.15),
+            color: Colors.grey.withValues(alpha: .15),
             blurRadius: 10,
           )
         ],
@@ -233,61 +375,22 @@ class _Home extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-
           CircleAvatar(
-            backgroundColor: color.withValues(alpha:.15),
+            backgroundColor: color.withValues(alpha: .15),
             child: Icon(icon, color: color),
           ),
-
           const SizedBox(height: 12),
-
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-
           const SizedBox(height: 5),
-
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.grey,
-            ),
-          ),
+          Text(title, style: const TextStyle(color: Colors.grey)),
         ],
       ),
     );
   }
-
-  Widget bookingTile(
-      String customer,
-      String service,
-      String price,
-      ) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        leading: const CircleAvatar(
-          child: Icon(Icons.person),
-        ),
-        title: Text(customer),
-        subtitle: Text(service),
-        trailing: Text(
-          price,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.green,
-          ),
-        ),
-      ),
-    );
-  }
 }
-
 class _BottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -361,14 +464,14 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-// PageRouteBuilder _slideRoute(Widget page) => PageRouteBuilder(
-//   pageBuilder: (_, a, __) => page,
-//   transitionsBuilder: (_, a, __, child) => SlideTransition(
-//     position: Tween(
-//       begin: const Offset(1, 0),
-//       end: Offset.zero,
-//     ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
-//     child: child,
-//   ),
-//   transitionDuration: const Duration(milliseconds: 350),
-// );
+PageRouteBuilder _slideRoute(Widget page) => PageRouteBuilder(
+  pageBuilder: (_, a, __) => page,
+  transitionsBuilder: (_, a, __, child) => SlideTransition(
+    position: Tween(
+      begin: const Offset(1, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
+    child: child,
+  ),
+  transitionDuration: const Duration(milliseconds: 350),
+);

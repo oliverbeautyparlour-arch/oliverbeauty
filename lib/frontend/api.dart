@@ -175,6 +175,16 @@ Future<bool> updateProfile({
       throw Exception('Failed to load top services');
     }
   }
+  
+Future<DashboardModel> getDashboard() async {
+  final response = await http.get(Uri.parse("${AppConfig.apiUrl}/dashboard"));
+
+  if (response.statusCode == 200) {
+    return DashboardModel.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load dashboard');
+  }
+}
 Future<Map<String, dynamic>?> getProfile(String userId) async {
   try {
     final response = await http.get(
@@ -253,7 +263,27 @@ class TopServiceProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+class DashboardProvider extends ChangeNotifier {
+  DashboardModel? _dashboard;
+  bool _isLoading = false;
 
+  DashboardModel? get dashboard => _dashboard;
+  bool get isLoading => _isLoading;
+
+  Future<void> fetchDashboard() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _dashboard = await ApiService().getDashboard();
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+}
 class AuthProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
 

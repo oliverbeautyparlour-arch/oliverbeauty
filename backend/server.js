@@ -283,13 +283,8 @@ app.post("/googleLogin", async (req, res) => {
 
   }
 });
-//app.use("/addService", require("./service.js"));
-const bookingSchema = new mongoose.Schema({
 
-  // bookingId: {
-  //   type: Number,
-  //   unique: true
-  // },
+const bookingSchema = new mongoose.Schema({
 
   userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -322,22 +317,40 @@ const bookingSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-
-  // paymentType: {
-  //   type: String,
-  //   default: "Cash"
-  // },
-
-  // status: {
-  //   type: String,
-  //   default: "Pending"
-  // },
-
   createdAt: {
     type: Date,
     default: Date.now
   }
 
+});
+app.get("/dashboard", async (req, res) => {
+  try {
+    const totalBookings = await Booking.countDocuments();
+
+    const totalCustomers = await Booking.distinct("userId");
+    // or "email" if you don't store userId
+
+    const totalServices = await Service.countDocuments();
+
+    const revenue = await Booking.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" }   // amount paid
+        }
+      }
+    ]);
+
+    res.json({
+      totalBookings,
+      totalCustomers: totalCustomers.length,
+      totalServices,
+      revenue: revenue.length == 0 ? 0 : revenue[0].total
+    });
+
+  } catch (e) {
+    res.status(500).json({ error: e.toString() });
+  }
 });
 const Booking = mongoose.model("Booking", bookingSchema);
 app.post("/booking", async (req, res) => {
