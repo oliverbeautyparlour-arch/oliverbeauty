@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:webui/frontend/about_screen.dart';
 import 'package:webui/frontend/api.dart';
+import 'package:webui/frontend/bookings_screen.dart';
+import 'package:webui/frontend/home_screen.dart';
+import 'package:webui/frontend/login_screen.dart';
+import 'package:webui/frontend/offers_screen.dart';
 import 'common_widgets.dart';
 import 'app_theme.dart';
 
@@ -19,28 +24,36 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  
- 
+  String? _lastLoadedUserId;
+
   bool _editing = false;
 
   Future<void> loadUserData() async {
-  final prefs = await SharedPreferences.getInstance();
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final userId = auth.userId;
 
-  final userId = prefs.getString("userId");
-   print("User ID: $userId");
+    if (userId == null || userId.isEmpty) return;
 
-  if (userId == null || userId.isEmpty) return;
+    final result = await ApiService().getProfile(userId);
 
-  final result = await ApiService().getProfile(userId);
-  print(result);
-
-  if (result != null && result["success"] == true && mounted) {
-    setState(() {
-      _nameCtrl.text = result["data"]["name"];
-      _emailCtrl.text = result["data"]["email"];
-    });
+    if (result != null && result["success"] == true && mounted) {
+      setState(() {
+        _nameCtrl.text = result["data"]["name"];
+        _emailCtrl.text = result["data"]["email"];
+        _lastLoadedUserId = userId;
+      });
+    }
   }
-}
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = Provider.of<AuthProvider>(context);
+
+    if (auth.userId != null && auth.userId != _lastLoadedUserId) {
+      loadUserData();
+    }
+  }
 
   @override
   void initState() {
@@ -63,7 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     _headerCtrl.dispose();
     _nameCtrl.dispose();
     _emailCtrl.dispose();
-  
+
     super.dispose();
   }
 
@@ -114,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 child: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha:0.15),
+                                    color: Colors.white.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Icon(
@@ -137,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               height: 90,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.white.withValues(alpha:0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 border: Border.all(
                                   color: Colors.white,
                                   width: 3,
@@ -186,7 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           _emailCtrl.text,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white.withValues(alpha:0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
 
@@ -211,32 +224,31 @@ class _ProfileScreenState extends State<ProfileScreen>
                     child: _SectionCard(
                       title: 'Profile Information',
                       trailing: GestureDetector(
-                       
-                       onTap: () async {
+                        onTap: () async {
+                          if (_editing) {
+                            final prefs = await SharedPreferences.getInstance();
 
-  if (_editing) {
-    final prefs = await SharedPreferences.getInstance();
+                            final success = await ApiService().updateProfile(
+                              userId: prefs.getString("userId")!,
+                              name: _nameCtrl.text,
+                              email: _emailCtrl.text,
+                            );
 
+                            if (success) {
+                              await loadUserData();
 
-    final success = await ApiService().updateProfile(
-      userId: prefs.getString("userId")!,
-      name: _nameCtrl.text,
-      email: _emailCtrl.text,
-    );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Profile Updated"),
+                                ),
+                              );
+                            }
+                          }
 
-    if (success) {
-      await loadUserData();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profile Updated")),
-      );
-    }
-  }
-
-  setState(() {
-    _editing = !_editing;
-  });
-},
+                          setState(() {
+                            _editing = !_editing;
+                          });
+                        },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(
@@ -276,12 +288,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                             controller: _emailCtrl,
                             enabled: _editing,
                           ),
-                         
-                          if (_editing) ...[
-                            const SizedBox(height: 14),
-                        
-                    
-                          ],
+
+                          if (_editing) ...[const SizedBox(height: 14)],
                         ],
                       ),
                     ),
@@ -300,17 +308,20 @@ class _ProfileScreenState extends State<ProfileScreen>
                             icon: Icons.receipt_long_rounded,
                             label: 'My Bookings',
                             color: AppTheme.primary,
+                            root: BookingsScreen(),
                           ),
                           _MenuItem(
                             icon: Icons.star_rounded,
                             label: 'My Reviews',
                             color: AppTheme.accent,
+                            root: AboutUsScreen(),
                           ),
 
                           _MenuItem(
                             icon: Icons.lock_outline_rounded,
                             label: 'Change Password',
                             color: AppTheme.textMid,
+                            root: ForgotPasswordScreen()
                           ),
                         ],
                       ),
@@ -330,16 +341,19 @@ class _ProfileScreenState extends State<ProfileScreen>
                             icon: Icons.local_offer_rounded,
                             label: 'Offers & Deals',
                             color: Colors.orange,
+                            root: OffersScreen(),
                           ),
                           _MenuItem(
                             icon: Icons.help_outline_rounded,
                             label: 'Help & Support',
                             color: Colors.blue,
+                            root: HelpSupportScreen(),
                           ),
                           _MenuItem(
                             icon: Icons.info_outline_rounded,
                             label: 'About Us',
                             color: AppTheme.textLight,
+                            root: AboutUsScreen()
                           ),
                         ],
                       ),
@@ -352,14 +366,46 @@ class _ProfileScreenState extends State<ProfileScreen>
                   FadeSlideIn(
                     delay: const Duration(milliseconds: 500),
                     child: PressableScale(
+                      onTap: () async {
+      // Show confirmation dialog
+      final shouldLogout = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Logout"),
+          content: const Text("Are you sure you want to logout?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Logout"),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldLogout == true) {
+       await context.read<AuthProvider>().logout();
+     
+ Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>  HomeScreen()
+          ),
+          (route) => false, 
+        );
+      }
+    },
                       child: Container(
                         width: double.infinity,
                         height: 52,
                         decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha:0.06),
+                          color: Colors.red.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.red.withValues(alpha:0.15),
+                            color: Colors.red.withValues(alpha: 0.15),
                           ),
                         ),
                         child: const Row(
@@ -394,7 +440,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 }
-
 
 class _SectionCard extends StatelessWidget {
   final String title;
@@ -471,7 +516,7 @@ class _ProfileField extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: enabled
-                  ? AppTheme.primary.withValues(alpha:0.3)
+                  ? AppTheme.primary.withValues(alpha: 0.3)
                   : Colors.transparent,
             ),
           ),
@@ -502,13 +547,22 @@ class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final Widget root;
+
   const _MenuItem({
     required this.icon,
     required this.label,
     required this.color,
+    required this.root
   });
   @override
   Widget build(BuildContext context) => PressableScale(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => root),
+      );
+    },
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
@@ -517,7 +571,7 @@ class _MenuItem extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: color.withValues(alpha:0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 18),

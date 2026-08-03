@@ -115,7 +115,8 @@ class _Home extends StatelessWidget {
               const SizedBox(height: 20),
 
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                
                 children: [
                   Text(
                     "Welcome Admin 👋",
@@ -128,10 +129,13 @@ class _Home extends StatelessWidget {
                   ElevatedButton.icon(onPressed: (){
                     Navigator.push(context, MaterialPageRoute(builder: (context)=> AdminDashboard()
                     ));
-                  }, label:Text("Add Service", style: TextStyle(
-                      fontSize: 22,
+                  },icon: Icon(Icons.add, size: 22,), 
+                  label:Text("Add Service", style: TextStyle(
+                    
+             // backgroundColor:AppTheme.primaryDark ,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryDark,
+                      color: AppTheme.bgCard,
                     ),))
                 ],
               ),
