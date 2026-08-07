@@ -218,6 +218,8 @@ class _BookingCard extends StatefulWidget {
   final bool upcoming;
   const _BookingCard({required this.booking, required this.upcoming});
 
+  
+
   @override
   State<_BookingCard> createState() => _BookingCardState();
 }
@@ -247,16 +249,62 @@ class _BookingCardState extends State<_BookingCard>
     _expanded ? _expandCtrl.forward() : _expandCtrl.reverse();
   }
 
+
+Future<void> _handleCancel(BuildContext context) async {
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Cancel booking?'),
+      content: const Text('This action cannot be undone.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Yes, cancel', style: TextStyle(color: Colors.redAccent)),
+        ),
+      ],
+    ),
+  );
+  if (confirm != true) return;
+
+  final provider = Provider.of<BookingProvider>(context, listen: false);
+  final ok = await provider.cancelBooking(widget.booking.bookingId!);
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ok ? 'Booking cancelled' : 'Failed to cancel')),
+    );
+  }
+}
+
+Future<void> _handleReschedule(BuildContext context) async {
+  final date = await showDatePicker(
+    context: context,
+    initialDate: widget.booking.bookingDateTime,
+    firstDate: DateTime.now(),
+    lastDate: DateTime.now().add(const Duration(days: 90)),
+  );
+  if (date == null || !context.mounted) return;
+
+  final time = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay.fromDateTime(widget.booking.bookingDateTime),
+  );
+  if (time == null || !context.mounted) return;
+
+  final newDateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+
+  final provider = Provider.of<BookingProvider>(context, listen: false);
+  final ok = await provider.rescheduleBooking(widget.booking.bookingId!, newDateTime);
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ok ? 'Booking rescheduled' : 'Failed to reschedule')),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     final b = widget.booking;
-    // final emoji = allServices
-    //     .firstWhere(
-    //       (s) => s.name == b.serviceName,
-    //       orElse: () => allServices.first,
-    //     )
-    //     .emoji;
-
+ 
     return GestureDetector(
       onTap: _toggle,
       child: AnimatedContainer(
@@ -299,9 +347,14 @@ class _BookingCardState extends State<_BookingCard>
                         ],
                       ),
                     ),
-                    child: Center(
-                      child: Text("hi", style: const TextStyle(fontSize: 26)),
-                    ),
+  //                   child:  Image.asset(
+  //   'assets/hair.webp',
+  //   width: double.infinity,
+  //   height: 170,
+  //   fit: BoxFit.cover,
+  // ),
+  child: Icon(Icons.check_box_outlined, color: Colors.green,),
+                    
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -318,7 +371,7 @@ class _BookingCardState extends State<_BookingCard>
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          'with StaffName',
+                          'Josephin',
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppTheme.textLight,
@@ -332,13 +385,13 @@ class _BookingCardState extends State<_BookingCard>
                               label:
                                   '${b.bookingDateTime.day} ${_month(b.bookingDateTime.month)}',
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             _MetaChip(
                               icon: Icons.access_time_rounded,
                               label:
                                   '${b.bookingDateTime.hour}:${b.bookingDateTime.minute.toString().padLeft(2, '0')} ${b.bookingDateTime.hour < 12 ? 'AM' : 'PM'}',
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             _MetaChip(
                               icon: Icons.timer_outlined,
                               label: '${b.bookedDuration} mins',
@@ -394,6 +447,7 @@ class _BookingCardState extends State<_BookingCard>
                           children: [
                             Expanded(
                               child: PressableScale(
+                                onTap: ()=>_handleReschedule(context),
                                 child: Container(
                                   height: 40,
                                   decoration: BoxDecoration(
@@ -417,7 +471,9 @@ class _BookingCardState extends State<_BookingCard>
                             const SizedBox(width: 10),
                             Expanded(
                               child: PressableScale(
+                                 onTap: ()=> _handleCancel(context),
                                 child: Container(
+                               
                                   height: 40,
                                   decoration: BoxDecoration(
                                     color: Colors.red.withValues(alpha:0.08),

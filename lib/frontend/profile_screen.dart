@@ -5,7 +5,6 @@ import 'package:webui/frontend/about_screen.dart';
 import 'package:webui/frontend/api.dart';
 import 'package:webui/frontend/bookings_screen.dart';
 import 'package:webui/frontend/home_screen.dart';
-import 'package:webui/frontend/login_screen.dart';
 import 'package:webui/frontend/offers_screen.dart';
 import 'common_widgets.dart';
 import 'app_theme.dart';

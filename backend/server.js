@@ -17,35 +17,6 @@ const PORT = process.env.PORT;
 
 const mongoUri = process.env.MONGODB_URI;
 
-// const razorpayKey = process.env.RAZORPAY_KEY_ID;
-// const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
-// const razorpay = new Razorpay({
-//     key_id: razorpayKey,
-//     key_secret: razorpaySecret
-// });
-// app.post("/createOrder", async (req, res) => {
-//   try {
-//     const { amount } = req.body;
-//     if (!amount || amount <= 0) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid amount"
-//       });
-//     }
-//     // const order = await razorpay.orders.create({
-//     //   amount: amount * 100,
-//     //   currency: "INR",
-//     //   receipt: "receipt_" + Date.now(),
-//     // });
-//     // res.json(order);
-//   } catch (err) {
-//     res.status(500).json({
-//       success: false,
-//       message: err.message,
-//     });
-//   }
-// });
-
 const userauth = new mongoose.Schema({
 
   name: {
@@ -349,7 +320,12 @@ const bookingSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  status: {
+  type: String,
+  enum: ['confirmed', 'cancelled', 'rescheduled'],
+  default: 'confirmed'
+},
 
 });
 app.get("/dashboard", async (req, res) => {
@@ -514,20 +490,60 @@ app.post('/addBookings', async (req, res) => {
     }
 
 });
-app.get('/dateandtime', async (req, res) => {
+// Add status to schema
+
+
+// Get all bookings for a user
+app.get('/bookings/user/:userId', async (req, res) => {
   try {
-    const { date } = req.query;
+    const bookings = await Booking.find({ userId: req.params.userId })
+      .sort({ bookingDateTime: -1 });
 
-    const bookings = await Booking.find(
-      { bookingDate: date },
-      { bookingTime: 1, _id: 0 }
-    );
+    const formatted = bookings.map(b => ({
+      bookingId: b._id,
+      userId: b.userId,
+      serviceId: b.serviceId,
+      serviceName: b.serviceName,
+      bookedPrice: b.bookedPrice,
+      bookedDuration: b.bookedDuration,
+      bookingDateTime: b.bookingDateTime,
+      status: b.status,
+    }));
 
-    res.status(200).json(bookings);
+    res.status(200).json(formatted);
   } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Cancel
+app.patch('/bookings/:id/cancel', async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { status: 'cancelled' },
+      { new: true }
+    );
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    res.status(200).json({ ...booking.toObject(), bookingId: booking._id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Reschedule
+app.patch('/bookings/:id/reschedule', async (req, res) => {
+  try {
+    const { bookingDateTime } = req.body;
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { bookingDateTime, status: 'rescheduled' },
+      { new: true }
+    );
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    res.status(200).json({ ...booking.toObject(), bookingId: booking._id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 //service storeing
@@ -600,12 +616,7 @@ app.get('/getService',async(req, res)=>{
   }
 });
 
-
-
-
-
 const uri = mongoUri;
-
 
 const connectDB = async () => {
   try {

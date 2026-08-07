@@ -6,7 +6,6 @@ import 'models.dart';
 import 'package:flutter/material.dart';
 
 class ApiService {
-
   Future<Map<String, dynamic>> signup({
     required String name,
     required String email,
@@ -63,25 +62,20 @@ class ApiService {
     }
   }
 
-Future<bool> updateProfile({
-  required String userId,
-  required String name,
-  required String email,
-}) async {
-  final response = await http.put(
-    Uri.parse("${AppConfig.apiUrl}/updateProfile/$userId"),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: jsonEncode({
-      "name": name,
-      "email": email,
-    }),
-  );
+  Future<bool> updateProfile({
+    required String userId,
+    required String name,
+    required String email,
+  }) async {
+    final response = await http.put(
+      Uri.parse("${AppConfig.apiUrl}/updateProfile/$userId"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"name": name, "email": email}),
+    );
 
- 
-  return response.statusCode == 200;
-}
+    return response.statusCode == 200;
+  }
+
   Future<Map<String, dynamic>> createOrder({required double amount}) async {
     final response = await http.post(
       Uri.parse("${AppConfig.apiUrl}/createOrder"),
@@ -113,8 +107,11 @@ Future<bool> updateProfile({
       Uri.parse("${AppConfig.apiUrl}/getBookings/$userId"),
     );
 
+    print("Bookings status: ${response.statusCode}");
+ print("Bookings body: ${response.body}");
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+       
 
       List bookings = data['data'];
 
@@ -138,7 +135,6 @@ Future<bool> updateProfile({
 
       return false;
     } catch (e) {
-      
       return false;
     }
   }
@@ -175,102 +171,160 @@ Future<bool> updateProfile({
       throw Exception('Failed to load top services');
     }
   }
-  
-Future<DashboardModel> getDashboard() async {
-  final response = await http.get(Uri.parse("${AppConfig.apiUrl}/dashboard"));
 
-  if (response.statusCode == 200) {
-    return DashboardModel.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load dashboard');
-  }
-}Future<bool> addService({
-  required String serviceName,
-  required String category,
-  required int durationMins,
-  required double price,
-  required String description,
-}) async {
-  try {
-    final response = await http.post(
-      Uri.parse("${AppConfig.apiUrl}/addService"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "serviceName": serviceName,
-        "category": category,
-        "durationMins": durationMins,
-        "price": price,
-        "description": description,
-      }),
-    );
+  Future<DashboardModel> getDashboard() async {
+    final response = await http.get(Uri.parse("${AppConfig.apiUrl}/dashboard"));
 
-    return response.statusCode == 201 || response.statusCode == 200;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
-Future<bool> updateService({
-  required String serviceId,
-  required String serviceName,
-  required String category,
-  required int durationMins,
-  required double price,
-  required String description,
-}) async {
-  try {
-    final response = await http.put(
-      Uri.parse("${AppConfig.apiUrl}/updateService/$serviceId"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "serviceName": serviceName,
-        "category": category,
-        "durationMins": durationMins,
-        "price": price,
-        "description": description,
-      }),
-    );
-
-    return response.statusCode == 200;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
-Future<Map<String, dynamic>?> getProfile(String userId) async {
-  try {
-    final response = await http.get(
-      Uri.parse("${AppConfig.apiUrl}/profile/$userId"),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    );
-
-print("Status: ${response.statusCode}");
-print("Body: ${response.body}");
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return DashboardModel.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load dashboard');
     }
-  } catch (e) {
-    debugPrint(e.toString());
   }
 
-  return null;
-}
+  Future<bool> addService({
+    required String serviceName,
+    required String category,
+    required int durationMins,
+    required double price,
+    required String description,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiUrl}/addService"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "serviceName": serviceName,
+          "category": category,
+          "durationMins": durationMins,
+          "price": price,
+          "description": description,
+        }),
+      );
 
+      return response.statusCode == 201 || response.statusCode == 200;
+    } catch (e) {
+      debugPrint(e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> updateService({
+    required String serviceId,
+    required String serviceName,
+    required String category,
+    required int durationMins,
+    required double price,
+    required String description,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiUrl}/updateService/$serviceId"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "serviceName": serviceName,
+          "category": category,
+          "durationMins": durationMins,
+          "price": price,
+          "description": description,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint(e.toString());
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getProfile(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse("${AppConfig.apiUrl}/profile/$userId"),
+        headers: {"Content-Type": "application/json"},
+      );
+
+      print("Status: ${response.statusCode}");
+      print("Body: ${response.body}");
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+
+    return null;
+  }
 }
 
 class BookingProvider extends ChangeNotifier {
   List<BookingModel> _bookings = [];
+  bool isLoading = false;
 
   List<BookingModel> get bookings => _bookings;
 
-  Future<void> fetchBookings(String userId) async {
+ Future<void> fetchBookings(String userId) async {
+  isLoading = true;
+  notifyListeners();
+  try {
+    print("Fetching bookings for userId: $userId");
     _bookings = await ApiService().getBookings(userId);
+    print("Bookings fetched: ${_bookings.length}");
+  } catch (e) {
+    debugPrint('fetchBookings error: $e');
+  } finally {
+    isLoading = false;
     notifyListeners();
   }
 }
 
+  Future<bool> cancelBooking(String bookingId) async {
+    try {
+      final res = await http.patch(
+        Uri.parse('${AppConfig.apiUrl}/bookings/$bookingId/cancel'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      print("Cancel status: ${res.statusCode}");
+print("Cancel body: ${res.body}");
+      if (res.statusCode == 200) {
+        final idx = _bookings.indexWhere((b) => b.bookingId == bookingId);
+        if (idx != -1) {
+          _bookings[idx] = _bookings[idx].copyWith(status: 'cancelled');
+          notifyListeners();
+        }
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('cancelBooking error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> rescheduleBooking(String bookingId, DateTime newDateTime) async {
+    try {
+      final res = await http.patch(
+        Uri.parse('${AppConfig.apiUrl}/bookings/$bookingId/reschedule'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'bookingDateTime': newDateTime.toIso8601String()}),
+      );
+      if (res.statusCode == 200) {
+        final idx = _bookings.indexWhere((b) => b.bookingId == bookingId);
+        if (idx != -1) {
+          _bookings[idx] = _bookings[idx].copyWith(
+            bookingDateTime: newDateTime,
+          );
+          notifyListeners();
+        }
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('reschedule Booking error: $e');
+      return false;
+    }
+  }
+}
 
 class ServiceProvider extends ChangeNotifier {
   List<ServiceModel> _services = [];
@@ -293,6 +347,7 @@ class ServiceProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
 class TopServiceProvider extends ChangeNotifier {
   List<ServiceModel> _topServices = [];
 
@@ -313,6 +368,7 @@ class TopServiceProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
 class DashboardProvider extends ChangeNotifier {
   DashboardModel? _dashboard;
   bool _isLoading = false;
@@ -334,6 +390,7 @@ class DashboardProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
 class AuthProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
 
@@ -367,17 +424,15 @@ class AuthProvider extends ChangeNotifier {
 
     notifyListeners();
   }
-  void updateProfile({
-  required String userName,
-  required String userEmail,
-}) {
-  name = userName;
-  email = userEmail;
-  notifyListeners();
-}
+
+  void updateProfile({required String userName, required String userEmail}) {
+    name = userName;
+    email = userEmail;
+    notifyListeners();
+  }
 
   Future<void> logout() async {
-     final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
     await prefs.clear();
     _isLoggedIn = false;

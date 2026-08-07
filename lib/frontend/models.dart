@@ -6,7 +6,7 @@ class ServiceModel {
   final double price;
   final String description;
   final String image;
-    final int totalBookings;
+  final int totalBookings;
 
   ServiceModel({
     required this.serviceId,
@@ -16,7 +16,7 @@ class ServiceModel {
     required this.price,
     required this.description,
     required this.image,
-     this.totalBookings = 0,
+    this.totalBookings = 0,
   });
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
@@ -27,10 +27,11 @@ class ServiceModel {
       durationMins: json['durationMins'] ?? 0,
       description: json['description'] ?? '',
       image: json['image'] ?? '',
-       totalBookings: json['totalBookings'] ?? 0,
+      totalBookings: json['totalBookings'] ?? 0,
     );
   }
 }
+
 class DashboardModel {
   final int bookings;
   final int customers;
@@ -53,6 +54,7 @@ class DashboardModel {
     );
   }
 }
+
 class BookingModel {
   final String? bookingId;
 
@@ -68,7 +70,7 @@ class BookingModel {
 
   final DateTime bookingDateTime;
 
-  
+  final String status;
 
   BookingModel({
     this.bookingId,
@@ -78,11 +80,12 @@ class BookingModel {
     required this.bookedPrice,
     required this.bookedDuration,
     required this.bookingDateTime,
+    this.status ='Pending',
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
     return BookingModel(
-      bookingId: json["bookingId"]?.toString(),
+     bookingId: json["_id"]?.toString(),
 
       userId: json["userId"],
 
@@ -95,6 +98,7 @@ class BookingModel {
       bookedDuration: json["bookedDuration"],
 
       bookingDateTime: DateTime.parse(json["bookingDateTime"]),
+      status: json['status'] ?? 'Confirmed',
     );
   }
 
@@ -111,7 +115,30 @@ class BookingModel {
       "bookedDuration": bookedDuration,
 
       "bookingDateTime": bookingDateTime.toIso8601String(),
+      "status": status,
     };
+  }
+
+  BookingModel copyWith({
+    String? bookingId,
+    String? userId,
+    String? serviceId,
+    String? serviceName,
+    double? bookedPrice,
+    int? bookedDuration,
+    DateTime? bookingDateTime,
+    String? status,
+  }) {
+    return BookingModel(
+      bookingId: bookingId ?? this.bookingId,
+      userId: userId ?? this.userId,
+      serviceId: serviceId ?? this.serviceId,
+      serviceName: serviceName ?? this.serviceName,
+      bookedPrice: bookedPrice ?? this.bookedPrice,
+      bookedDuration: bookedDuration ?? this.bookedDuration,
+      bookingDateTime: bookingDateTime ?? this.bookingDateTime,
+      status: status ?? this.status,
+    );
   }
 }
 

@@ -45,6 +45,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       serviceName: widget.service.serviceName,
       bookedPrice: widget.service.price,
       bookedDuration: widget.service.durationMins,
+      // status: widget.service.status,
       bookingDateTime: DateTime(
         widget.date.year,
         widget.date.month,
