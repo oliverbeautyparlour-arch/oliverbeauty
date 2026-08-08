@@ -727,24 +727,28 @@ class _PromoBanner extends StatelessWidget {
 class _WhyChooseUs extends StatelessWidget {
   final items = const [
     {
-      'icon': '👩‍🔬',
+      'icon': Icons.verified_user_rounded,
       'title': 'Professional Staff',
       'sub': 'Trained & certified beauty experts',
+      'color': Colors.blue,
     },
     {
-      'icon': '🧴',
+      'icon': Icons.clean_hands_rounded,
       'title': 'Hygienic Tools',
       'sub': 'High standards of cleanliness',
+      'color': Colors.teal,
     },
     {
-      'icon': '🌿',
+      'icon': Icons.eco_rounded,
       'title': 'Quality Products',
       'sub': 'We use premium quality products',
+      'color': Colors.green,
     },
     {
-      'icon': '💰',
+      'icon': Icons.currency_rupee_rounded,
       'title': 'Affordable Pricing',
       'sub': 'Best services at reasonable prices',
+      'color': Colors.orange,
     },
   ];
 
@@ -759,7 +763,7 @@ class _WhyChooseUs extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 1.8,
+          childAspectRatio: 1.25, // was 1.8 — taller cards, more breathing room
         ),
         itemCount: items.length,
         itemBuilder: (ctx, i) => FadeSlideIn(
@@ -771,33 +775,44 @@ class _WhyChooseUs extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppTheme.divider),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(items[i]['icon']!, style: TextStyle(fontSize: 26)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        items[i]['title']!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textDark,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        items[i]['sub']!,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppTheme.textLight,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: (items[i]['color'] as Color).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    items[i]['icon'] as IconData,
+                    color: items[i]['color'] as Color,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  items[i]['title'] as String,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textDark,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  items[i]['sub'] as String,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.textLight,
+                    height: 1.3,
                   ),
                 ),
               ],

@@ -34,11 +34,11 @@ class _GalleryScreenState extends State<GalleryScreen>
 
   final categories = [
     'All Services',
-    'Hair',
-    'Skin',
-    'Makeup',
-    'Nails',
-    'Bridal',
+    // 'Hair',
+    // 'Skin',
+    // 'Makeup',
+    // 'Nails',
+    // 'Bridal',
   ];
     List<ServiceModel> allServices = [];
   bool isLoading = true;
