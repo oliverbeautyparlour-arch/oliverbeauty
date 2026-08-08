@@ -14,6 +14,7 @@ import 'services_screen.dart';
 import 'api.dart';
 import 'package:provider/provider.dart';
 
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
   @override
@@ -41,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _heroCtrl.forward();
     Future.microtask(() {
       context.read<ServiceProvider>().fetchServices();
+        context.read<OfferProvider>().fetchOffers();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<TopServiceProvider>(
@@ -688,7 +690,7 @@ class _PromoBanner extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const OffersScreen()),
+                      MaterialPageRoute(builder: (_) => const OffersScreen ()),
                     );
                   },
                   child: Container(

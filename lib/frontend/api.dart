@@ -150,14 +150,7 @@ class ApiService {
     }
   }
 
-  // Future<Map<String, dynamic>> forgotPassword({required String email}) async {
-  //   final response = await http.post(
-  //     Uri.parse('${AppConfig.apiUrl}/auth/forgot-password'),
-  //     headers: {'Content-Type': 'application/json'},
-  //     body: jsonEncode({'email': email}),
-  //   );
-  //   return jsonDecode(response.body);
-  // }
+
   Future<Map<String, dynamic>> resetPasswordDirect({
   required String email,
   required String newPassword,
@@ -214,6 +207,7 @@ class ApiService {
     required int durationMins,
     required double price,
     required String description,
+     String? image,
   }) async {
     try {
       final response = await http.post(
@@ -225,6 +219,7 @@ class ApiService {
           "durationMins": durationMins,
           "price": price,
           "description": description,
+          "image": image,
         }),
       );
 
@@ -242,6 +237,7 @@ class ApiService {
     required int durationMins,
     required double price,
     required String description,
+     String? image,
   }) async {
     try {
       final response = await http.put(
@@ -253,6 +249,7 @@ class ApiService {
           "durationMins": durationMins,
           "price": price,
           "description": description,
+          "image": image
         }),
       );
 
@@ -281,6 +278,114 @@ class ApiService {
 
     return null;
   }
+Future<Map<String, dynamic>> getAvailability(String date) async {
+  try {
+    final response =
+        await http.get(Uri.parse('${AppConfig.apiUrl}/availability/$date'));
+    return jsonDecode(response.body);
+  } catch (e) {
+    return {
+      "success": false,
+      "fullDayBlocked": false,
+      "adminBlockedSlots": [],
+      "bookedSlots": [],
+    };
+  }
+}
+ 
+Future<bool> setAvailability({
+  required String date,
+  required bool fullDayBlocked,
+  required List<String> blockedSlots,
+  String reason = "",
+}) async {
+  try {
+    final response = await http.post(
+      Uri.parse('${AppConfig.apiUrl}/admin/availability'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "date": date,
+        "fullDayBlocked": fullDayBlocked,
+        "blockedSlots": blockedSlots,
+        "reason": reason,
+      }),
+    );
+    return response.statusCode == 200;
+  } catch (e) {
+    return false;
+  }
+}
+ 
+Future<List<AvailabilityModel>> getAllAvailability() async {
+  final response =
+      await http.get(Uri.parse('${AppConfig.apiUrl}/admin/availability'));
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    List entries = data['data'];
+    return entries.map((e) => AvailabilityModel.fromJson(e)).toList();
+  }
+  throw Exception('Failed to load availability');
+}
+ 
+Future<bool> deleteAvailability(String id) async {
+  try {
+    final response = await http
+        .delete(Uri.parse('${AppConfig.apiUrl}/admin/availability/$id'));
+    return response.statusCode == 200;
+  } catch (e) {
+    return false;
+  }
+}
+ 
+// ── Offers ────────────────────────────────────────────────────
+ 
+Future<List<OfferModel>> getOffers() async {
+  final response = await http.get(Uri.parse('${AppConfig.apiUrl}/offers'));
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    List offers = data['data'];
+    return offers.map((e) => OfferModel.fromJson(e)).toList();
+  }
+  throw Exception('Failed to load offers');
+}
+ 
+Future<bool> addOffer({
+  required String title,
+  required String subtitle,
+  required String discountText,
+  required String image,
+  DateTime? validTill,
+}) async {
+  try {
+    final response = await http.post(
+      Uri.parse('${AppConfig.apiUrl}/admin/addOffer'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "title": title,
+        "subtitle": subtitle,
+        "discountText": discountText,
+        "image": image,
+        "validTill": validTill?.toIso8601String(),
+      }),
+    );
+    return response.statusCode == 201;
+  } catch (e) {
+    return false;
+  }
+}
+ 
+Future<bool> deleteOffer(String id) async {
+  try {
+    final response =
+        await http.delete(Uri.parse('${AppConfig.apiUrl}/admin/offers/$id'));
+    return response.statusCode == 200;
+  } catch (e) {
+    return false;
+  }
+}
+ 
+
+
 }
 
 class BookingProvider extends ChangeNotifier {
@@ -303,7 +408,6 @@ class BookingProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 
 
   Future<bool> cancelBooking(String bookingId) async {
@@ -352,6 +456,8 @@ class BookingProvider extends ChangeNotifier {
       return false;
     }
   }
+
+
 }
 
 class ServiceProvider extends ChangeNotifier {
@@ -474,6 +580,24 @@ class AuthProvider extends ChangeNotifier {
     name = null;
     email = null;
 
+    notifyListeners();
+  }
+}
+class OfferProvider extends ChangeNotifier {
+  List<OfferModel> _offers = [];
+  bool isLoading = false;
+ 
+  List<OfferModel> get offers => _offers;
+ 
+  Future<void> fetchOffers() async {
+    isLoading = true;
+    notifyListeners();
+    try {
+      _offers = await ApiService().getOffers();
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    isLoading = false;
     notifyListeners();
   }
 }

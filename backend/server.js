@@ -409,14 +409,17 @@ app.get("/dashboard", async (req, res) => {
 
     const totalServices = await Service.countDocuments();
 
+   
     const revenue = await Booking.aggregate([
+      { $match: { status: { $ne: "cancelled" } } },
       {
         $group: {
           _id: null,
-          total: { $sum: "$amount" }   // amount paid
+          total: { $sum: "$bookedPrice" }
         }
       }
     ]);
+
 
     res.json({
       totalBookings,
@@ -688,6 +691,139 @@ app.get('/getService',async(req, res)=>{
   }
 });
 
+
+
+
+const availabilitySchema = new mongoose.Schema({
+  date: { type: String, required: true, unique: true }, // "YYYY-MM-DD"
+  fullDayBlocked: { type: Boolean, default: false },
+  blockedSlots: [{ type: String }], // e.g. ["09:00", "10:00"]
+  reason: { type: String, default: "" },
+});
+const Availability = mongoose.model("Availability", availabilitySchema);
+
+const offerSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  subtitle: { type: String, default: "" },
+  discountText: { type: String, required: true }, // "15% OFF", "₹999", etc.
+  image: { type: String, default: "" },
+  validTill: { type: Date, default: null },
+  active: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+});
+const Offer = mongoose.model("Offer", offerSchema);
+
+
+app.post("/admin/availability", async (req, res) => {
+  try {
+    const { date, fullDayBlocked, blockedSlots, reason } = req.body;
+
+    let entry = await Availability.findOne({ date });
+
+    if (entry) {
+      entry.fullDayBlocked = fullDayBlocked ?? entry.fullDayBlocked;
+      entry.blockedSlots = blockedSlots ?? entry.blockedSlots;
+      entry.reason = reason ?? entry.reason;
+      await entry.save();
+    } else {
+      entry = new Availability({ date, fullDayBlocked, blockedSlots, reason });
+      await entry.save();
+    }
+
+    res.status(200).json({ success: true, data: entry });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+app.get("/admin/availability", async (req, res) => {
+  try {
+    const entries = await Availability.find().sort({ date: 1 });
+    res.status(200).json({ success: true, data: entries });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+app.delete("/admin/availability/:id", async (req, res) => {
+  try {
+    await Availability.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+app.get("/availability/:date", async (req, res) => {
+  try {
+    const { date } = req.params; // "YYYY-MM-DD"
+
+    const adminBlock = await Availability.findOne({ date });
+
+    const startOfDay = new Date(`${date}T00:00:00`);
+    const endOfDay = new Date(`${date}T23:59:59`);
+
+    const bookings = await Booking.find({
+      bookingDateTime: { $gte: startOfDay, $lte: endOfDay },
+      status: { $ne: "cancelled" },
+    });
+
+    const bookedSlots = bookings.map((b) => {
+      const d = new Date(b.bookingDateTime);
+      return `${d.getHours().toString().padStart(2, "0")}:${d
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`;
+    });
+
+    res.status(200).json({
+      success: true,
+      fullDayBlocked: adminBlock?.fullDayBlocked ?? false,
+      adminBlockedSlots: adminBlock?.blockedSlots ?? [],
+      bookedSlots,
+      reason: adminBlock?.reason ?? "",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+
+
+app.post("/admin/addOffer", async (req, res) => {
+  try {
+    const offer = new Offer(req.body);
+    await offer.save();
+    res.status(201).json({ success: true, data: offer });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.get("/offers", async (req, res) => {
+  try {
+    const offers = await Offer.find({ active: true }).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: offers });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.delete("/admin/offers/:id", async (req, res) => {
+  try {
+    await Offer.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+  
 const uri = mongoUri;
 
 const connectDB = async () => {

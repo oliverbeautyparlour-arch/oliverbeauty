@@ -24,7 +24,7 @@ Future<void> main()  async{
         ChangeNotifierProvider(create: (_)=> ServiceProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => ServiceProvider()),
-
+ChangeNotifierProvider(create: (_) => OfferProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => TopServiceProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),

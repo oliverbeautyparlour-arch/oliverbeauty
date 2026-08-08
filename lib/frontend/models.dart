@@ -141,7 +141,61 @@ class BookingModel {
     );
   }
 }
+/* Append these classes to your models.dart */
 
+class AvailabilityModel {
+  final String id;
+  final String date; // "YYYY-MM-DD"
+  final bool fullDayBlocked;
+  final List<String> blockedSlots;
+  final String reason;
+
+  AvailabilityModel({
+    required this.id,
+    required this.date,
+    required this.fullDayBlocked,
+    required this.blockedSlots,
+    required this.reason,
+  });
+
+  factory AvailabilityModel.fromJson(Map<String, dynamic> json) =>
+      AvailabilityModel(
+        id: json['_id'] ?? '',
+        date: json['date'] ?? '',
+        fullDayBlocked: json['fullDayBlocked'] ?? false,
+        blockedSlots: List<String>.from(json['blockedSlots'] ?? []),
+        reason: json['reason'] ?? '',
+      );
+}
+
+class OfferModel {
+  final String id;
+  final String title;
+  final String subtitle;
+  final String discountText;
+  final String image;
+  final DateTime? validTill;
+
+  OfferModel({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.discountText,
+    required this.image,
+    this.validTill,
+  });
+
+  factory OfferModel.fromJson(Map<String, dynamic> json) => OfferModel(
+        id: json['_id'] ?? '',
+        title: json['title'] ?? '',
+        subtitle: json['subtitle'] ?? '',
+        discountText: json['discountText'] ?? '',
+        image: json['image'] ?? '',
+        validTill: json['validTill'] != null
+            ? DateTime.tryParse(json['validTill'])
+            : null,
+      );
+}
 final List<Map<String, String>> testimonials = [
   {
     'name': 'Priya S.',

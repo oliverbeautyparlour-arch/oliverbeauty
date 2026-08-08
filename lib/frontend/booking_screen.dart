@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:webui/frontend/home_screen.dart';
 import 'package:webui/frontend/login_screen.dart';
 import 'package:webui/frontend/shimmer.dart';
+import 'package:webui/frontend/smart_image.dart';
 import 'app_theme.dart';
 import 'models.dart';
 import 'common_widgets.dart';
@@ -573,18 +574,16 @@ class _ServiceDetail extends StatelessWidget {
       ),
       child: Column(
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(18),
-              topRight: Radius.circular(18),
-            ),
-            child: Image.asset(
-              'assets/${service.image}',
-              width: double.infinity,
-              height: 190,
-              fit: BoxFit.cover,
-            ),
-          ),
+         SmartImage(
+  imagePath: service.image,
+  width: double.infinity,
+  height: 190,
+  fit: BoxFit.cover,
+  borderRadius: const BorderRadius.only(
+    topLeft: Radius.circular(18),
+    topRight: Radius.circular(18),
+  ),
+),
           //),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -661,6 +660,10 @@ class _ServiceDetail extends StatelessWidget {
 
 // ─── Step 3: Date & Time ──────────────────────────────────────────────────────
 
+// ─── Step 3: Date & Time ──────────────────────────────────────────────────────
+// Replace the ENTIRE existing _SelectDateTimeStep and _SelectDateTimeStepState
+// classes in booking_screen.dart with everything below.
+
 class _SelectDateTimeStep extends StatefulWidget {
   final DateTime? selectedDate;
   final TimeOfDay? selectedTime;
@@ -690,32 +693,31 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
   ];
 
   List<bool> _unavailable = [];
+  bool _fullyBlocked = false;
+  bool _loadingAvailability = false;
+  String _blockReason = "";
 
-  List<BookingModel> bookings = [];
+  // Dates that are fully blocked by the admin — greyed out in the date scroller
+  Set<String> _blockedDates = {};
 
   final List<String> months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
   int i = DateTime.now().month - 1;
 
   DateTime get _baseDate => DateTime.now().add(const Duration(days: 1));
   final ScrollController _scrollController = ScrollController();
 
+  String _dateKey(DateTime d) =>
+      "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+
+  String _timeKey(TimeOfDay t) =>
+      "${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}";
+
   int _getMonthStartIndex(int month) {
     for (int i = 0; i < 300; i++) {
       final date = _baseDate.add(Duration(days: i));
-
       if (date.day == 1 && date.month == month) {
         return i;
       }
@@ -724,8 +726,7 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
   }
 
   void _scrollToIndex(int index) {
-    final itemExtent = 66.0;
-
+    const itemExtent = 66.0;
     _scrollController.animateTo(
       index * itemExtent,
       duration: const Duration(milliseconds: 400),
@@ -739,38 +740,64 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
     super.dispose();
   }
 
-  void updateUnavailableSlots(DateTime selectedDate) {
-    _unavailable = List.filled(_slots.length, false);
-
-    for (var booking in bookings) {
-      final bookingDate = booking.bookingDateTime;
-
-      bool sameDay =
-          bookingDate.year == selectedDate.year &&
-          bookingDate.month == selectedDate.month &&
-          bookingDate.day == selectedDate.day;
-
-      if (sameDay) {
-        for (int i = 0; i < _slots.length; i++) {
-          if (_slots[i].hour == bookingDate.hour &&
-              _slots[i].minute == bookingDate.minute) {
-            _unavailable[i] = true;
-          }
-        }
-      }
-    }
-
-    setState(() {});
-  }
-
   @override
   void initState() {
     super.initState();
-    loadBookings();
+    _loadBlockedDates();
+    if (widget.selectedDate != null) {
+      updateUnavailableSlots(widget.selectedDate!);
+    }
   }
 
-  Future<void> loadBookings() async {
-    setState(() {});
+  Future<void> _loadBlockedDates() async {
+    try {
+      final entries = await ApiService().getAllAvailability();
+      if (!mounted) return;
+      setState(() {
+        _blockedDates = entries
+            .where((e) => e.fullDayBlocked)
+            .map((e) => e.date)
+            .toSet();
+      });
+    } catch (e) {
+      debugPrint('loadBlockedDates error: $e');
+    }
+  }
+
+  Future<void> updateUnavailableSlots(DateTime selectedDate) async {
+    setState(() {
+      _loadingAvailability = true;
+      _unavailable = List.filled(_slots.length, false);
+      _fullyBlocked = false;
+    });
+
+    try {
+      final result = await ApiService().getAvailability(_dateKey(selectedDate));
+
+      final bool fullyBlocked = result['fullDayBlocked'] == true;
+      final List adminSlots = result['adminBlockedSlots'] ?? [];
+      final List bookedSlots = result['bookedSlots'] ?? [];
+
+      final blockedTimes = <String>{
+        ...adminSlots.map((e) => e.toString()),
+        ...bookedSlots.map((e) => e.toString()),
+      };
+
+      final newUnavailable = List.generate(_slots.length, (i) {
+        return blockedTimes.contains(_timeKey(_slots[i]));
+      });
+
+      if (!mounted) return;
+      setState(() {
+        _unavailable = newUnavailable;
+        _fullyBlocked = fullyBlocked;
+        _blockReason = result['reason'] ?? '';
+        _loadingAvailability = false;
+      });
+    } catch (e) {
+      debugPrint('updateUnavailableSlots error: $e');
+      if (mounted) setState(() => _loadingAvailability = false);
+    }
   }
 
   DateTime selectedDate = DateTime.now();
@@ -801,22 +828,16 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
-                    /// Year Selector
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
                           onPressed: () {
-                            setModalState(() {
-                              tempYear--;
-                            });
+                            setModalState(() => tempYear--);
                           },
                           icon: const Icon(Icons.arrow_back_ios),
                         ),
-
                         Text(
                           "$tempYear",
                           style: const TextStyle(
@@ -824,39 +845,30 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
                         IconButton(
                           onPressed: () {
-                            setModalState(() {
-                              tempYear++;
-                            });
+                            setModalState(() => tempYear++);
                           },
                           icon: const Icon(Icons.arrow_forward_ios),
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 20),
-
-                    /// Month Grid
                     GridView.builder(
                       shrinkWrap: true,
                       itemCount: months.length,
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            childAspectRatio: 2.5,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                          ),
+                        crossAxisCount: 3,
+                        childAspectRatio: 2.5,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
                       itemBuilder: (context, index) {
                         bool selected = tempMonth == index + 1;
-
                         return InkWell(
                           onTap: () {
-                            setModalState(() {
-                              tempMonth = index + 1;
-                            });
+                            setModalState(() => tempMonth = index + 1);
                           },
                           child: Container(
                             alignment: Alignment.center,
@@ -880,21 +892,15 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                         );
                       },
                     ),
-
                     const SizedBox(height: 25),
-
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
                           selectedDate = DateTime(tempYear, tempMonth, 1);
-
                           i = tempMonth - 1;
                         });
-
                         int index = _getMonthStartIndex(tempMonth);
-
                         _scrollToIndex(index);
-
                         Navigator.pop(context);
                       },
                       child: const Text("Done"),
@@ -930,12 +936,10 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                   ),
                 ),
               ),
-
-              Spacer(),
+              const Spacer(),
               SizedBox(
                 width: 200,
                 height: 30,
-                // color: Colors.black,
                 child: Row(
                   children: [
                     IconButton(
@@ -946,19 +950,15 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                             selectedDate.month - 1,
                             1,
                           );
-
                           i = selectedDate.month + 1;
                         });
-
                         _scrollToIndex(_getMonthStartIndex(selectedDate.month));
                       },
-                      icon: Icon(Icons.arrow_back_ios, size: 20),
+                      icon: const Icon(Icons.arrow_back_ios, size: 20),
                       color: AppTheme.primaryDark,
                     ),
                     GestureDetector(
-                      onTap: () {
-                        _showMonthYearPicker();
-                      },
+                      onTap: _showMonthYearPicker,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -974,7 +974,6 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                         ],
                       ),
                     ),
-
                     IconButton(
                       onPressed: () {
                         setState(() {
@@ -983,13 +982,11 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                             selectedDate.month + 1,
                             1,
                           );
-
                           i = selectedDate.month - 1;
                         });
-
                         _scrollToIndex(_getMonthStartIndex(selectedDate.month));
                       },
-                      icon: Icon(Icons.arrow_forward_ios, size: 20),
+                      icon: const Icon(Icons.arrow_forward_ios, size: 20),
                       color: AppTheme.primaryDark,
                     ),
                   ],
@@ -998,7 +995,7 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
             ],
           ),
           const SizedBox(height: 14),
-          //SizedBox(height: 40, child: Container(color: Colors.black)),
+
           // Horizontal date selector
           SizedBox(
             height: 80,
@@ -1009,80 +1006,105 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
               itemCount: 365,
               itemBuilder: (ctx, i) {
                 final date = _baseDate.add(Duration(days: i));
-                final isSelected =
-                    widget.selectedDate != null &&
+                final isSelected = widget.selectedDate != null &&
                     widget.selectedDate!.day == date.day &&
                     widget.selectedDate!.month == date.month;
+                final isBlocked = _blockedDates.contains(_dateKey(date));
                 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
                 return GestureDetector(
-                  onTap: () {
-                    widget.onDate(date);
-                    updateUnavailableSlots(date);
-                    // Future.delayed(const Duration(milliseconds: 50), () {
-                    //   _scrollToIndex(i);
-                    // });
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    width: 56,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      gradient: isSelected
-                          ? const LinearGradient(
-                              colors: [AppTheme.primary, AppTheme.primaryDark],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            )
-                          : null,
-                      color: isSelected ? null : Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected ? AppTheme.primary : AppTheme.divider,
-                      ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: AppTheme.primary.withValues(alpha:0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
+                  onTap: isBlocked
+                      ? () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "We're not available on this date. Please pick another.",
                               ),
-                            ]
-                          : null,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          days[date.weekday - 1],
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isSelected
-                                ? Colors.white.withValues(alpha:0.8)
-                                : AppTheme.textLight,
-                            fontWeight: FontWeight.w600,
-                          ),
+                            ),
+                          );
+                        }
+                      : () {
+                          widget.onDate(date);
+                          updateUnavailableSlots(date);
+                        },
+                  child: Opacity(
+                    opacity: isBlocked ? 0.4 : 1,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      width: 56,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [
+                                  AppTheme.primary,
+                                  AppTheme.primaryDark
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              )
+                            : null,
+                        color: isSelected
+                            ? null
+                            : (isBlocked
+                                ? AppTheme.surface
+                                : Colors.white),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color:
+                              isSelected ? AppTheme.primary : AppTheme.divider,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${date.day}',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: isSelected
-                                ? Colors.white
-                                : AppTheme.textDark,
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color:
+                                      AppTheme.primary.withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            days[date.weekday - 1],
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isSelected
+                                  ? Colors.white.withValues(alpha: 0.8)
+                                  : AppTheme.textLight,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        Text(
-                          _monthName(date.month),
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isSelected
-                                ? Colors.white.withValues(alpha:0.7)
-                                : AppTheme.textLight,
+                          const SizedBox(height: 4),
+                          Text(
+                            '${date.day}',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isBlocked
+                                      ? AppTheme.textLight
+                                      : AppTheme.textDark),
+                              decoration: isBlocked
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
                           ),
-                        ),
-                      ],
+                          Text(
+                            _monthName(date.month),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isSelected
+                                  ? Colors.white.withValues(alpha: 0.7)
+                                  : AppTheme.textLight,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -1101,6 +1123,7 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
             ),
           ),
           const SizedBox(height: 14),
+
           if (widget.selectedDate == null)
             const Center(
               child: Padding(
@@ -1111,8 +1134,54 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                 ),
               ),
             )
+          else if (_loadingAvailability)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 30),
+                child: CircularProgressIndicator(color: AppTheme.primary),
+              ),
+            )
+          else if (_fullyBlocked)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.divider),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.event_busy_rounded,
+                      color: AppTheme.textLight, size: 32),
+                  const SizedBox(height: 10),
+                  Text(
+                    "We're not available on this date.",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (_blockReason.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      _blockReason,
+                      style: TextStyle(
+                          fontSize: 12, color: AppTheme.textLight),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                  const SizedBox(height: 6),
+                  Text(
+                    "Please choose another date, or call us at +91 7402052965.",
+                    style: TextStyle(fontSize: 12, color: AppTheme.textLight),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
           else
-            // Time slots grid
             LayoutBuilder(
               builder: (context, constraints) {
                 int crossAxisCount;
@@ -1138,8 +1207,10 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                     final slot = _slots[i];
                     final isSelected =
                         widget.selectedTime?.hour == slot.hour &&
-                        widget.selectedTime?.minute == slot.minute;
-                    final unavail = _unavailable[i];
+                            widget.selectedTime?.minute == slot.minute;
+                    final unavail = _unavailable.isNotEmpty
+                        ? _unavailable[i]
+                        : false;
                     return GestureDetector(
                       onTap: unavail ? null : () => widget.onTime(slot),
                       child: AnimatedContainer(
@@ -1170,10 +1241,10 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: unavail
-                                  ? AppTheme.textLight.withValues(alpha:0.4)
+                                  ? AppTheme.textLight.withValues(alpha: 0.4)
                                   : (isSelected
-                                        ? Colors.white
-                                        : AppTheme.textDark),
+                                      ? Colors.white
+                                      : AppTheme.textDark),
                               decoration: unavail
                                   ? TextDecoration.lineThrough
                                   : null,
@@ -1186,6 +1257,7 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
                 );
               },
             ),
+
           const SizedBox(height: 16),
           Row(
             children: [
@@ -1194,38 +1266,41 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
               _LegendDot(color: AppTheme.divider, label: 'Unavailable'),
             ],
           ),
-          SizedBox(height: 10),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.schedule),
-            label: const Text('Choose Custom Time'),
-            onPressed: () async {
-              final picked = await showTimePicker(
-                context: context,
-                initialTime: widget.selectedTime ?? TimeOfDay.now(),
-              );
+          const SizedBox(height: 10),
 
-              if (picked != null) {
-                if (picked.hour < 9 || picked.hour > 17) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Please select a time between 9 AM and 5 PM.',
+          if (!_fullyBlocked && widget.selectedDate != null)
+            ElevatedButton.icon(
+              icon: const Icon(Icons.schedule),
+              label: const Text('Choose Custom Time'),
+              onPressed: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: widget.selectedTime ?? TimeOfDay.now(),
+                );
+
+                if (picked != null) {
+                  if (picked.hour < 9 || picked.hour > 17) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Please select a time between 9 AM and 5 PM.',
+                        ),
                       ),
-                    ),
-                  );
-                  return;
-                } else {
-                  widget.onTime(picked);
+                    );
+                    return;
+                  } else {
+                    widget.onTime(picked);
+                  }
                 }
-              }
-            },
-          ),
+              },
+            ),
+
           if (widget.selectedTime != null)
             Container(
               margin: const EdgeInsets.only(top: 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha:0.1),
+                color: AppTheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppTheme.primary),
               ),
@@ -1246,19 +1321,9 @@ class _SelectDateTimeStepState extends State<_SelectDateTimeStep> {
   }
 
   String _monthName(int m) => [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ][m - 1];
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ][m - 1];
 }
 
 class _LegendDot extends StatelessWidget {
@@ -1267,20 +1332,22 @@ class _LegendDot extends StatelessWidget {
   const _LegendDot({required this.color, required this.label});
   @override
   Widget build(BuildContext context) => Row(
-    children: [
-      Container(
-        width: 10,
-        height: 10,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      ),
-      const SizedBox(width: 6),
-      Text(
-        label,
-        style: const TextStyle(fontSize: 11, color: AppTheme.textLight),
-      ),
-    ],
-  );
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, color: AppTheme.textLight),
+          ),
+        ],
+      );
 }
+ 
+
 
 // ─── Step 4: Checkout Preview ─────────────────────────────────────────────────
 class _CheckoutPreviewStep extends StatelessWidget {

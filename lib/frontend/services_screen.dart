@@ -34,6 +34,7 @@ class _ServicesScreenState extends State<ServicesScreen>
     'Skin',
     'Makeup',
     'Bridal',
+    'Treatments'
   ];
 
   List<ServiceModel> get filtered {

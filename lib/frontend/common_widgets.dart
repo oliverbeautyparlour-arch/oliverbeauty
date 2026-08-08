@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:webui/frontend/smart_image.dart';
 import 'app_theme.dart';
 
 // ── Fade + slide in on build ──────────────────────────────────────────────────
@@ -248,16 +249,15 @@ class ServiceCard extends StatelessWidget {
               ),
             ),
 
-child: ClipRRect(
+child: 
+SmartImage(
+  imagePath: image,
+  width: double.infinity,
+  height: 190,
+  fit: BoxFit.cover,
   borderRadius: const BorderRadius.only(
     topLeft: Radius.circular(18),
     topRight: Radius.circular(18),
-  ),
-  child: Image.asset(
-    'assets/$image',
-    width: double.infinity,
-    height: 170,
-    fit: BoxFit.cover,
   ),
 ),
           ),

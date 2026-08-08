@@ -177,7 +177,8 @@ class _GalleryScreenState extends State<GalleryScreen>
               crossAxisSpacing: 12,
               childCount: img.length,
               itemBuilder: (context, index) {
-                return ClipRRect(
+                return 
+                ClipRRect(
                   borderRadius: BorderRadius.circular(12),
 
                   child: Image.asset(img[index], fit: BoxFit.cover),

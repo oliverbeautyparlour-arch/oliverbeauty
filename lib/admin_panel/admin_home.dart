@@ -7,6 +7,8 @@ import 'package:webui/frontend/profile_screen.dart';
 import 'package:webui/frontend/services_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:webui/admin_panel/availability_screen.dart';
+import 'package:webui/admin_panel/offers_admin_screen.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -114,32 +116,57 @@ class _Home extends StatelessWidget {
             children: [
               const SizedBox(height: 20),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                
-                children: [
-                  Text(
-                    "Welcome Admin 👋",
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryDark,
-                    ),
-                  ),
-                  ElevatedButton.icon(onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=> AdminDashboard()
-                    ));
-                  },icon: Icon(Icons.add, size: 22,), 
-                  label:Text("Add Service", style: TextStyle(
-                    
-             // backgroundColor:AppTheme.primaryDark ,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.bgCard,
-                    ),))
-                ],
-              ),
-
+              Wrap(
+  spacing: 12,
+  runSpacing: 12,
+  crossAxisAlignment: WrapCrossAlignment.center,
+  children: [
+    Text(
+      "Welcome Admin 👋",
+      style: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: AppTheme.primaryDark,
+      ),
+    ),
+    Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const AvailabilityScreen()));
+          },
+          icon: const Icon(Icons.event_busy, size: 20),
+          label: const Text("Availability"),
+        ),
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const OffersAdminScreen()));
+          },
+          icon: const Icon(Icons.local_offer, size: 20),
+          label: const Text("Offers"),
+        ),
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => AdminDashboard()));
+          },
+          icon: const Icon(Icons.add, size: 22),
+          label: Text(
+            "Add Service",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.bgCard,
+            ),
+          ),
+        ),
+      ],
+    ),
+  ],
+),
               const SizedBox(height: 8),
 
               Text(
