@@ -141,7 +141,7 @@ class BookingModel {
     );
   }
 }
-/* Append these classes to your models.dart */
+
 
 class AvailabilityModel {
   final String id;

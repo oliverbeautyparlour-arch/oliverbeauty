@@ -337,7 +337,7 @@ Future<bool> deleteAvailability(String id) async {
   }
 }
  
-// ── Offers ────────────────────────────────────────────────────
+
  
 Future<List<OfferModel>> getOffers() async {
   final response = await http.get(Uri.parse('${AppConfig.apiUrl}/offers'));
