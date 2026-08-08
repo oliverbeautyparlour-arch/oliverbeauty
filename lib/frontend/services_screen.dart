@@ -75,7 +75,7 @@ class _ServicesScreenState extends State<ServicesScreen>
     if (width > 1000) {
       return getScale(width);
     }
-    return 0.90;
+    return 0.68;
   }
 
   double getScale(double width) {

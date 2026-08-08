@@ -101,89 +101,94 @@ class _HomeContent extends StatelessWidget {
       slivers: [
         // ── Top bar ──────────────────────────────────────────────────────────
         SliverAppBar(
-          pinned: true,
-          backgroundColor: Colors.white,
-          elevation: 0,
+  pinned: true,
+  backgroundColor: Colors.white,
+  elevation: 0,
 
-          title: Row(
-            children: [
-              Container(
-                width: 54,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.shade300, width: 1),
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/Logoround.webp',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 20),
-              const Text(
-                'Oliver',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.green,
-                  letterSpacing: 2.7,
-                  fontFamily: 'serif',
-                ),
-              ),
-            ],
+  title: LayoutBuilder(
+    builder: (context, constraints) {
+      return Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade300, width: 1),
+            ),
+            child: ClipOval(
+              child: Image.asset('assets/Logoround.webp', fit: BoxFit.cover),
+            ),
           ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              'Oliver',
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.green,
+                letterSpacing: 2.7,
+                fontFamily: 'serif',
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  ),
 
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => LoginScreen(islogin: true),
-                    ),
-                  );
-                },
-                // icon: const Icon(Icons.person_outline, size: 18),
-                label: const Text("Login"),
-                style: ElevatedButton.styleFrom(
-                  shadowColor: Colors.white.withValues(alpha:1),
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => LoginScreen(islogin: false),
-                    ),
-                  );
-                },
-                // icon: const Icon(Icons.person_outline, size: 18),
-                label: const Text("Sign up"),
-                style: ElevatedButton.styleFrom(
-                  shadowColor: Colors.green.withValues(alpha:0.4),
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
-              ),
-            ),
-          ],
+  actions: [
+    Padding(
+      padding: const EdgeInsets.only(right: 10),
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => LoginScreen(islogin: true)),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
         ),
+        child: const Text("Login"),
+      ),
+    ),
+    
+    if (MediaQuery.of(context).size.width > 420)
+      Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => LoginScreen(islogin: false)),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.green,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(25),
+              side: const BorderSide(color: Colors.green),
+            ),
+          ),
+          child: const Text("Sign up",
+      
+          ),
+        ),
+      ),
+  ],
+),
         SliverToBoxAdapter(
           child: Column(
             children: [

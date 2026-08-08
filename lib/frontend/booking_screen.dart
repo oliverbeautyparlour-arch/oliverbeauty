@@ -109,108 +109,115 @@ void _scrollToSelectedService() {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                    child: Row(
-                      children: [
-                        // if (_step > 0)
-                        GestureDetector(
-                          onTap: _back,
-                          child: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: AppTheme.surface,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              size: 15,
-                              color: AppTheme.textDark,
-                            ),
-                          ),
-                        ),
+  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Row 1: back button + title (always gets full width)
+      Row(
+        children: [
+          GestureDetector(
+            onTap: _back,
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 15,
+                color: AppTheme.textDark,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Book Appointment',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textDark,
+                    fontFamily: 'Georgia',
+                  ),
+                ),
+                Text(
+                  'Home / Booking',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textLight,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
 
-                        if (_step > 0) const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Book Appointment',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.textDark,
-                                  fontFamily: 'Georgia',
-                                ),
-                              ),
-                              Text(
-                                'Home / Booking',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppTheme.textLight,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (_step == 0 && !auth.isLoggedIn)
-                          Row(
-                            children: [
-                              Text(
-                                "Wanna Book? Login first",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppTheme.textLight,
-                                ),
-                              ),
-                              SizedBox(width: 9),
-                              PressableScale(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    _slideRoute(LoginScreen(islogin: true)),
-                                  );
-                                },
-                                child: Container(
-                                  height: 30,
-                                  width: 70,
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        AppTheme.primary,
-                                        AppTheme.primaryDark,
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppTheme.primary.withValues(alpha:
-                                          0.4,
-                                        ),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 6),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      "Log in",
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
+      // Row 2: login prompt, only shown when needed, own full-width row
+      if (_step == 0 && !auth.isLoggedIn)
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  "Wanna Book? Login first",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textLight,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 9),
+              PressableScale(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    _slideRoute(LoginScreen(islogin: true)),
+                  );
+                },
+                child: Container(
+                  height: 30,
+                  width: 70,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.primary, AppTheme.primaryDark],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primary.withValues(alpha: 0.4),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Log in",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+    ],
+  ),
+),
                   const SizedBox(height: 20),
                   _StepIndicator(current: _step),
                   const SizedBox(height: 16),
