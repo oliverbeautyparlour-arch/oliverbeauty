@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webui/frontend/about_screen.dart';
 import 'package:webui/frontend/api.dart';
 import 'package:webui/frontend/bookings_screen.dart';
@@ -313,14 +314,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                             icon: Icons.star_rounded,
                             label: 'My Reviews',
                             color: AppTheme.accent,
-                            root: AboutUsScreen(),
+                           externalUrl: 'https://g.page/r/CY7QhLU4WzTtEAE/review',
                           ),
 
                           _MenuItem(
                             icon: Icons.lock_outline_rounded,
                             label: 'Change Password',
                             color: AppTheme.textMid,
-                            root: ForgotPasswordScreen()
+                            root: ResetPasswordScreen()
                           ),
                         ],
                       ),
@@ -366,6 +367,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                     delay: const Duration(milliseconds: 500),
                     child: PressableScale(
                       onTap: () async {
+                          final auth = context.read<AuthProvider>();
+
+  if (!auth.isLoggedIn) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("You haven't logged in yet.")),
+    );
+    return;
+  }
       // Show confirmation dialog
       final shouldLogout = await showDialog<bool>(
         context: context,
@@ -546,22 +555,38 @@ class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
-  final Widget root;
+  final Widget? root;
+   final String? externalUrl;
 
   const _MenuItem({
     required this.icon,
     required this.label,
     required this.color,
-    required this.root
-  });
-  @override
-  Widget build(BuildContext context) => PressableScale(
-    onTap: () {
+     this.root,
+    this.externalUrl,
+  }): assert(
+         root != null || externalUrl != null,
+         'Provide either root or externalUrl',
+       );
+       Future<void> _handleTap(BuildContext context) async {
+    if (externalUrl != null) {
+      final uri = Uri.parse(externalUrl!);
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Couldn't open the link.")),
+        );
+      }
+    } else if (root != null) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => root),
+        MaterialPageRoute(builder: (context) => root!),
       );
-    },
+    }
+  }
+  @override
+  Widget build(BuildContext context) => PressableScale(
+    onTap: ()   => _handleTap(context),
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(

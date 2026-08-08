@@ -108,16 +108,27 @@ class ApiService {
     );
 
     print("Bookings status: ${response.statusCode}");
- print("Bookings body: ${response.body}");
+    print("Bookings body: ${response.body}");
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-       
 
       List bookings = data['data'];
 
       return bookings.map((e) => BookingModel.fromJson(e)).toList();
     } else {
       throw Exception('Failed to load bookings');
+    }
+  }
+    Future<bool> logoutUser(String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiUrl}/logout/$userId"),
+        headers: {"Content-Type": "application/json"},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint(e.toString());
+      return false;
     }
   }
 
@@ -139,14 +150,29 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> forgotPassword({required String email}) async {
+  // Future<Map<String, dynamic>> forgotPassword({required String email}) async {
+  //   final response = await http.post(
+  //     Uri.parse('${AppConfig.apiUrl}/auth/forgot-password'),
+  //     headers: {'Content-Type': 'application/json'},
+  //     body: jsonEncode({'email': email}),
+  //   );
+  //   return jsonDecode(response.body);
+  // }
+  Future<Map<String, dynamic>> resetPasswordDirect({
+  required String email,
+  required String newPassword,
+}) async {
+  try {
     final response = await http.post(
-      Uri.parse('${AppConfig.apiUrl}/auth/forgot-password'),
+      Uri.parse('${AppConfig.apiUrl}/auth/reset-password-direct'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email}),
+      body: jsonEncode({'email': email, 'newPassword': newPassword}),
     );
     return jsonDecode(response.body);
+  } catch (e) {
+    return {"success": false, "message": "Network error. Please try again."};
   }
+}
 
   Future<Map<String, dynamic>> googleLogin(String accessToken) async {
     final response = await http.post(
@@ -263,20 +289,22 @@ class BookingProvider extends ChangeNotifier {
 
   List<BookingModel> get bookings => _bookings;
 
- Future<void> fetchBookings(String userId) async {
-  isLoading = true;
-  notifyListeners();
-  try {
-    print("Fetching bookings for userId: $userId");
-    _bookings = await ApiService().getBookings(userId);
-    print("Bookings fetched: ${_bookings.length}");
-  } catch (e) {
-    debugPrint('fetchBookings error: $e');
-  } finally {
-    isLoading = false;
+  Future<void> fetchBookings(String userId) async {
+    isLoading = true;
     notifyListeners();
+    try {
+      print("Fetching bookings for userId: $userId");
+      _bookings = await ApiService().getBookings(userId);
+      print("Bookings fetched: ${_bookings.length}");
+    } catch (e) {
+      debugPrint('fetchBookings error: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
-}
+
+
 
   Future<bool> cancelBooking(String bookingId) async {
     try {
@@ -285,7 +313,7 @@ class BookingProvider extends ChangeNotifier {
         headers: {'Content-Type': 'application/json'},
       );
       print("Cancel status: ${res.statusCode}");
-print("Cancel body: ${res.body}");
+      print("Cancel body: ${res.body}");
       if (res.statusCode == 200) {
         final idx = _bookings.indexWhere((b) => b.bookingId == bookingId);
         if (idx != -1) {
@@ -433,7 +461,13 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-
+    try {
+      if (userId != null) {
+        await ApiService().logoutUser(userId!); // instance call, not static
+      }
+    } catch (e) {
+      debugPrint('Logout API failed: $e');
+    }
     await prefs.clear();
     _isLoggedIn = false;
     userId = null;

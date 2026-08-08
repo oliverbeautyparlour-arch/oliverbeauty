@@ -24,7 +24,7 @@ class OffersScreen extends StatelessWidget {
             ),
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppTheme.primary),
         titleTextStyle: const TextStyle(
           fontFamily: 'Georgia',
           color: Colors.white,

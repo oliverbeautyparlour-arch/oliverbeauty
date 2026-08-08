@@ -48,10 +48,82 @@ const userauth = new mongoose.Schema({
   provider: {
     type: String,
     default: "local",
-  }
+  },
+  lastLogoutAt: {
+  type: Date,
+  default: null,
+},
+resetAttempts: { type: Number, default: 0 },
+resetAttemptDate: { type: Date, default: null },
 
 });
+app.post("/auth/reset-password-direct", async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
 
+    const user = await Auth.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found with that email.",
+      });
+    }
+
+    const now = new Date();
+    const last = user.resetAttemptDate;
+    const isSameDay =
+      last &&
+      last.getFullYear() === now.getFullYear() &&
+      last.getMonth() === now.getMonth() &&
+      last.getDate() === now.getDate();
+
+    if (isSameDay && user.resetAttempts >= 3) {
+      return res.status(429).json({
+        success: false,
+        message:
+          "You've reached today's password reset limit. Please call us at +91 7402052965 if you need help.",
+      });
+    }
+
+    user.password = newPassword; // plaintext for now, matches your current login
+    user.resetAttempts = isSameDay ? user.resetAttempts + 1 : 1;
+    user.resetAttemptDate = now;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully.",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+app.post("/logout/:id", async (req, res) => {
+  try {
+    const user = await Auth.findByIdAndUpdate(
+      req.params.id,
+      { lastLogoutAt: new Date() },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 const Auth = mongoose.model("Auth", userauth);
 app.post("/login", async (req, res) => {
   try {
